@@ -1,6 +1,7 @@
 import Icons from "@/utils/icons";
 
 export default function Home() {
+  const user = null;
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-background font-sans">
       <header className="flex justify-between items-center w-full p-3">
@@ -25,10 +26,23 @@ export default function Home() {
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          <Icons.Notification className="text-xl" />
-          <div className="w-8 h-8 bg-accent rounded-full grid place-content-center text-background font-bold">
-            P
-          </div>
+          {user ? (
+            <>
+              <Icons.Notification className="text-xl" />
+              <div className="w-8 h-8 bg-accent rounded-full grid place-content-center text-background font-bold">
+                P
+              </div>
+            </>
+          ) : (
+            <>
+              <button className="cursor-pointer hover:opacity-75 transition-all p-2">
+                Sign Up
+              </button>
+              <button className="p-2 bg-accent rounded-full font-bold text-background w-32 cursor-pointer hover:opacity-75 transition-all">
+                Log In
+              </button>
+            </>
+          )}
         </div>
       </header>
       <main className="flex justify-between gap-2 flex-1 w-full">
