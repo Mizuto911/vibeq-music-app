@@ -16,7 +16,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${openSans.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${openSans.variable} h-full antialiased selection:bg-accent selection:text-background`}
+    >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
