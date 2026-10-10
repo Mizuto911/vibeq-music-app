@@ -9,7 +9,7 @@ export default function SignUpPage() {
     "use server";
     const response = await createUser(formData);
     if (response.success) {
-      redirect("/");
+      redirect("/log-in?from-sign-up=true");
     } else {
       redirect(`/sign-up?error=${response.error}`);
     }
