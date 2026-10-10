@@ -1,9 +1,10 @@
 import Icons from "@/utils/icons";
+import Link from "next/link";
 
 export default function Home() {
   const user = null;
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-background font-sans">
+    <div className="flex flex-col flex-1 items-center justify-between bg-background font-sans">
       <header className="flex justify-between items-center w-full p-3">
         <div className="flex gap-2 items-center">
           <Icons.TempLogo className="text-xl text-primary" />
@@ -35,12 +36,18 @@ export default function Home() {
             </>
           ) : (
             <>
-              <button className="cursor-pointer hover:opacity-75 transition-all p-2">
+              <Link
+                href="/sign-up"
+                className="cursor-pointer hover:opacity-75 transition-all p-2 font-bold"
+              >
                 Sign Up
-              </button>
-              <button className="p-2 bg-accent rounded-full font-bold text-background w-32 cursor-pointer hover:opacity-75 transition-all">
+              </Link>
+              <Link
+                href="log-in"
+                className="p-2 bg-accent rounded-full font-bold text-background w-32 cursor-pointer hover:opacity-75 transition-all text-center"
+              >
                 Log In
-              </button>
+              </Link>
             </>
           )}
         </div>
