@@ -4,10 +4,21 @@ import { signIn } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import Link from "next/link";
+import ErrorDialog from "@/app/_components/ErrorDialog";
 
-export default function LogInPage() {
+interface LogInPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function LogInPage({ searchParams }: LogInPageProps) {
+  const error = (await searchParams).error;
+  const errorMessage = typeof error === "string" ? error : undefined;
+
   async function handleSubmit(formData: FormData) {
     "use server";
+    if (!formData.has("email") || !formData.get("password")) {
+      redirect("/log-in?error=Fill%20up%20all%20required%20fields");
+    }
     try {
       await signIn("credentials", {
         email: formData.get("email"),
@@ -38,7 +49,7 @@ export default function LogInPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 justify-center items-center bg-background">
+    <div className="flex flex-col flex-1 justify-center items-center bg-background relative">
       <main className="w-full h-full items-center justify-center max-w-250 flex flex-col gap-4 px-4">
         <Icons.TempLogo className="text-5xl text-primary" />
         <h1 className="text-4xl text-center font-bold text-primary">
@@ -112,6 +123,7 @@ export default function LogInPage() {
           </Link>
         </section>
       </main>
+      {errorMessage && <ErrorDialog message={errorMessage} />}
     </div>
   );
 }
