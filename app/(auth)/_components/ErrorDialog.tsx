@@ -17,7 +17,11 @@ export default function ErrorDialog({ searchParams }: ErrorDialogProps) {
   const [showDialog, setShowDialog] = useState(false);
   useEffect(() => {
     setTimeout(() => setShowDialog(true), 300);
-    setTimeout(() => setShowDialog(false), 3000);
+    const closeTimeout = setTimeout(() => setShowDialog(false), 3000);
+    return () => {
+      clearTimeout(closeTimeout);
+      setShowDialog(false);
+    };
   }, []);
 
   if (!errorMessage) {
@@ -33,12 +37,12 @@ export default function ErrorDialog({ searchParams }: ErrorDialogProps) {
       )}
     >
       <p className="p-4 text-sm">{errorMessage}</p>
-      <p className="h-full pe-2">
-        <Icons.Dismiss
-          className="text-md cursor-pointer"
-          onClick={() => setShowDialog(false)}
-        />
-      </p>
+      <button
+        className="cursor-pointer me-2"
+        onClick={() => setShowDialog(false)}
+      >
+        <Icons.Dismiss className="text-md" />
+      </button>
     </div>
   );
 }
