@@ -6,7 +6,7 @@ import { NeonDbError } from "@neondatabase/serverless";
 import { User } from "next-auth";
 
 export type ActionResponse =
-  | { success: true; user: Partial<DatabaseUser> }
+  | { success: true; user: User }
   | { success: false; error: string };
 
 export interface DatabaseUser {
@@ -40,7 +40,14 @@ export async function createUser(formData: FormData): Promise<ActionResponse> {
       RETURNING user_name, email, created_at, image_url
     `) as Omit<DatabaseUser, "password">[];
 
-    return { success: true, user: newUser };
+    return {
+      success: true,
+      user: {
+        name: newUser.user_name,
+        email: newUser.email,
+        image: newUser?.image_url,
+      },
+    };
   } catch (error) {
     if (error instanceof NeonDbError) {
       if (error.code === "23505") {
@@ -89,10 +96,19 @@ export async function getUserFromEmailPassword(
   email: string,
   password: string,
 ): Promise<UserResponse> {
-  const user = (await db`SELECT * FROM users WHERE email = '${email}'`)[0];
+  const [user] =
+    (await db`SELECT * FROM users WHERE email = ${email}`) as DatabaseUser[];
 
   if (!user) return { success: false, user: null };
   const passwordMatch = await isPasswordMatch(password, user.password);
   if (!passwordMatch) return { success: false, user: null };
-  else return { success: true, user };
+  else
+    return {
+      success: true,
+      user: {
+        name: user.user_name,
+        email: user.email,
+        image: user.image_url,
+      },
+    };
 }
