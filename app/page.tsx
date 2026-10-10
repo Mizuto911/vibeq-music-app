@@ -1,8 +1,13 @@
 import Icons from "@/utils/icons";
 import Link from "next/link";
+import { auth } from "@/server/auth";
+import Image from "next/image";
 
-export default function Home() {
-  const user = null;
+export default async function Home() {
+  const session = await auth();
+  const user = session?.user ?? null;
+  const isAuthenticated = !!session && !!user;
+
   return (
     <div className="flex flex-col flex-1 items-center justify-between bg-background font-sans">
       <header className="flex justify-between items-center w-full p-3">
@@ -27,11 +32,21 @@ export default function Home() {
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          {user ? (
+          {isAuthenticated ? (
             <>
               <Icons.Notification className="text-xl" />
               <div className="w-8 h-8 bg-accent rounded-full grid place-content-center text-background font-bold">
-                P
+                {user.image == null ? (
+                  user.name?.charAt(0).toUpperCase()
+                ) : (
+                  <Image
+                    src={user.image}
+                    alt="User Profile Picture"
+                    width={32}
+                    height={32}
+                    className="w-full h-full rounded-full"
+                  />
+                )}
               </div>
             </>
           ) : (
