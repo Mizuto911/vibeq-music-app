@@ -4,8 +4,14 @@ import { createUser } from "@/server/actions/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/server/auth";
+import ErrorDialog from "@/app/(auth)/_components/ErrorDialog";
+import { Suspense } from "react";
 
-export default function SignUpPage() {
+interface SignUpPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default function SignUpPage({ searchParams }: SignUpPageProps) {
   async function handleSubmit(formData: FormData) {
     "use server";
     const response = await createUser(formData);
@@ -113,6 +119,9 @@ export default function SignUpPage() {
           </Link>
         </section>
       </main>
+      <Suspense fallback={null}>
+        <ErrorDialog searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

@@ -4,16 +4,14 @@ import { signIn } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import Link from "next/link";
-import ErrorDialog from "@/app/_components/ErrorDialog";
+import ErrorDialog from "@/app/(auth)/_components/ErrorDialog";
+import { Suspense } from "react";
 
 interface LogInPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function LogInPage({ searchParams }: LogInPageProps) {
-  const error = (await searchParams).error;
-  const errorMessage = typeof error === "string" ? error : undefined;
-
   async function handleSubmit(formData: FormData) {
     "use server";
     if (!formData.has("email") || !formData.get("password")) {
@@ -123,7 +121,9 @@ export default async function LogInPage({ searchParams }: LogInPageProps) {
           </Link>
         </section>
       </main>
-      {errorMessage && <ErrorDialog message={errorMessage} />}
+      <Suspense fallback={null}>
+        <ErrorDialog searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
