@@ -1,0 +1,15 @@
+.errorDialog {
+  font-weight: bold;
+  color: var(--background);
+  background-color: var(--accent);
+  max-width: 400px;
+  margin: 1rem;
+  transition-property: transform;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+  border-radius: 12px;
+}
+
+.hide {
+  transform: translateY(200%);
+}
