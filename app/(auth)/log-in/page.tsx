@@ -32,6 +32,11 @@ export default function LogInPage() {
     await signIn("facebook", { redirectTo: "/" });
   }
 
+  async function handleGoogleOAuth() {
+    "use server";
+    await signIn("google", { redirectTo: "/" });
+  }
+
   return (
     <div className="flex flex-col flex-1 justify-center items-center bg-background">
       <main className="w-full h-full items-center justify-center max-w-250 flex flex-col gap-4 px-4">
@@ -73,7 +78,7 @@ export default function LogInPage() {
         </form>
         <hr className="border border-background-light w-full max-w-150" />
         <section className="w-full max-w-150 flex gap-2">
-          <form className="flex-1">
+          <form action={handleGoogleOAuth} className="flex-1">
             <button className="w-full p-3 flex gap-4 items-center justify-center rounded-full border-2 border-background-lighter font-bold hover:opacity-75 transition-all cursor-pointer">
               <Image
                 src="/google-icon.png"
