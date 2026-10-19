@@ -9,9 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1152.0",
+    "@aws-sdk/lib-storage": "^3.1152.0",
+    "@aws-sdk/s3-presigned-post": "^3.1152.0",
+    "@aws-sdk/s3-request-presigner": "^3.1152.0",
+    "@neon/env": "^1.6.3",
     "@neondatabase/serverless": "^1.2.0",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
+    "dotenv": "^18.0.8",
+    "files-sdk": "^3.1.1",
     "next": "16.4.0",
     "next-auth": "^5.0.0-beta.32",
     "react": "19.3.0",
@@ -20,6 +27,7 @@
     "react-loading-skeleton": "^3.5.0"
   },
   "devDependencies": {
+    "@neon/config": "^1.9.2",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/turbopack": "^4",
     "@types/bcrypt": "^6.0.0",
