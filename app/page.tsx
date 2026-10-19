@@ -2,11 +2,16 @@ import Icons from "@/utils/icons";
 import Link from "next/link";
 import { auth } from "@/server/auth";
 import Image from "next/image";
+import { songFiles } from "@/server/storage";
 
 export default async function Home() {
   const session = await auth();
   const user = session?.user ?? null;
   const isAuthenticated = !!session && !!user;
+
+  const songURL = await songFiles.url("NIGHTBREAK - Mori Calliope.mp3", {
+    expiresIn: 300,
+  });
 
   return (
     <div className="flex flex-col flex-1 items-center justify-between bg-background font-sans">
@@ -85,7 +90,7 @@ export default async function Home() {
         <section className="rounded-md bg-background-light p-4 w-60"></section>
       </main>
       <section className="h-30 w-full flex justify-center items-center">
-        <p>This is where the music player goes.</p>
+        <audio src={songURL} controls></audio>
       </section>
     </div>
   );
