@@ -14,6 +14,7 @@ export default function SignInForm() {
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (isLoading) return;
     const formData = new FormData(e.target);
 
     if (!formData.has("email") || !formData.get("password")) {
