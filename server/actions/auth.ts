@@ -10,6 +10,7 @@ export type ActionResponse =
   | { success: false; error: string };
 
 export interface DatabaseUser {
+  id: string;
   user_name: string;
   email: string;
   created_at: Date | string;
@@ -99,6 +100,14 @@ export async function getUserFromEmailPassword(
   const [user] =
     (await db`SELECT * FROM users WHERE email = ${email}`) as DatabaseUser[];
 
+  /* 
+  User Schema:
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null; 
+  */
+
   if (!user) return { success: false, user: null };
   const passwordMatch = await isPasswordMatch(password, user.password);
   if (!passwordMatch) return { success: false, user: null };
@@ -106,6 +115,7 @@ export async function getUserFromEmailPassword(
     return {
       success: true,
       user: {
+        id: user.id,
         name: user.user_name,
         email: user.email,
         image: user.image_url,
