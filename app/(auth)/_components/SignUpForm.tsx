@@ -77,12 +77,12 @@ export default function SignUpForm() {
       </div>
       <button
         className={clsx(
-          "p-4 w-50 bg-accent rounded-full text-background font-bold transition-all cursor-pointer mt-4",
-          isLoading && "opacity-50",
-          !isLoading && " hover:opacity-75",
+          "p-4 w-50 bg-accent rounded-full text-background font-bold transition-all mt-4",
+          isLoading && "opacity-50 cursor-not-allowed",
+          !isLoading && " hover:opacity-75 cursor-pointer ",
         )}
       >
-        {isLoading ? "Logging In" : "Log In"}
+        {isLoading ? "Signing Up" : "Sign Up"}
       </button>
       <ErrorDialog
         message={error}

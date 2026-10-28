@@ -8,7 +8,7 @@ import clsx from "clsx";
 
 export default function SignInForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
 
@@ -71,9 +71,9 @@ export default function SignInForm() {
       </div>
       <button
         className={clsx(
-          "p-4 w-50 bg-accent rounded-full text-background font-bold transition-all cursor-pointer mt-4",
-          isLoading && "opacity-50",
-          !isLoading && " hover:opacity-75",
+          "p-4 w-50 bg-accent rounded-full text-background font-bold transition-all mt-4",
+          isLoading && "opacity-50 cursor-not-allowed",
+          !isLoading && " hover:opacity-75 cursor-pointer ",
         )}
       >
         {isLoading ? "Logging In" : "Log In"}
