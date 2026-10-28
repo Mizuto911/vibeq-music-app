@@ -15,6 +15,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1152.0",
     "@neon/env": "^1.6.3",
     "@neondatabase/serverless": "^1.2.0",
+    "axios": "^1.21.0",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.8",
