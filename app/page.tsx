@@ -1,17 +1,12 @@
-import Icons from "@/utils/icons";
 import Link from "next/link";
-import { auth } from "@/server/auth";
 import Image from "next/image";
-import { songFiles } from "@/server/storage";
+import Icons from "@/utils/icons";
+import getCurrentUser from "@/utils/auth";
+import { connection } from "next/server";
 
 export default async function Home() {
-  const session = await auth();
-  const user = session?.user ?? null;
-  const isAuthenticated = !!session && !!user;
-
-  const songURL = await songFiles.url("NIGHTBREAK - Mori Calliope.mp3", {
-    expiresIn: 300,
-  });
+  await connection();
+  const user = await getCurrentUser();
 
   return (
     <div className="flex flex-col flex-1 items-center justify-between bg-background font-sans">
@@ -37,7 +32,7 @@ export default async function Home() {
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          {isAuthenticated ? (
+          {user ? (
             <>
               <Icons.Notification className="text-xl" />
               <div className="w-8 h-8 bg-accent rounded-full grid place-content-center text-background font-bold">
@@ -86,11 +81,11 @@ export default async function Home() {
             </div>
           </div>
         </section>
-        <section className="rounded-md bg-background-light p-4 flex-1"></section>
+        <section className="rounded-md bg-background-light p-4 flex-1 flex justify-center items-center"></section>
         <section className="rounded-md bg-background-light p-4 w-60"></section>
       </main>
       <section className="h-30 w-full flex justify-center items-center">
-        <audio src={songURL} controls></audio>
+        This is where the music player goes.
       </section>
     </div>
   );
