@@ -58,7 +58,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             account.providerAccountId,
             userExist.password,
           );
-          if (!passwordMatch) return "/?failed_login=true";
+          if (!passwordMatch)
+            return "/?login-message=User%20with%20that%20email%20already%20exists";
         }
       }
       return true;

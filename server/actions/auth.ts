@@ -3,7 +3,9 @@
 import db from "@/db/database";
 import { hashPassword, isPasswordMatch } from "@/utils/pwHash";
 import { NeonDbError } from "@neondatabase/serverless";
-import { User } from "next-auth";
+import { redirect } from "next/navigation";
+import { User, AuthError } from "next-auth";
+import { signIn } from "../auth";
 
 export type ActionResponse =
   | { success: true; user: User }
@@ -121,4 +123,29 @@ export async function getUserFromEmailPassword(
         image: user.image_url,
       },
     };
+}
+
+export async function SignInCredentials(formData: FormData) {
+  "use server";
+  try {
+    await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirect: false,
+    });
+    return { success: true, message: "Log In Successful!" };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { success: false, message: "Incorrect Email or Password" };
+        default:
+          return {
+            success: false,
+            message: "Something went wrong. Please try again later.",
+          };
+      }
+    }
+    throw error;
+  }
 }
