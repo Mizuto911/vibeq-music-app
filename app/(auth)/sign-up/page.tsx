@@ -4,24 +4,9 @@ import { createUser } from "@/server/actions/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/server/auth";
-import ErrorDialog from "@/app/(auth)/_components/ErrorDialog";
-import { Suspense } from "react";
+import SignUpForm from "../_components/SignUpForm";
 
-interface SignUpPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default function SignUpPage({ searchParams }: SignUpPageProps) {
-  async function handleSubmit(formData: FormData) {
-    "use server";
-    const response = await createUser(formData);
-    if (response.success) {
-      redirect("/log-in?from-sign-up=true");
-    } else {
-      redirect(`/sign-up?error=${response.error}`);
-    }
-  }
-
+export default function SignUpPage() {
   async function handleFacebookOAuth() {
     "use server";
     await signIn("facebook", { redirectTo: "/" });
@@ -39,50 +24,7 @@ export default function SignUpPage({ searchParams }: SignUpPageProps) {
         <h1 className="text-4xl text-center font-bold text-primary">
           Sign up to Start listening or post music!
         </h1>
-        <form
-          action={handleSubmit}
-          className="w-full flex flex-col items-center gap-4 my-4"
-        >
-          <div className="flex flex-col gap-2 w-full max-w-100 px-2">
-            <label htmlFor="username" className="font-bold">
-              User Name
-            </label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              placeholder="e.g. JohnDoe3000"
-              className="p-4 w-full border border-foreground bg-background-light rounded-xl focus:outline-2 focus-visible:outline-2 focus:outline-foreground focus-visible:outline-foreground"
-            />
-          </div>
-          <div className="flex flex-col gap-2 w-full max-w-100 px-2">
-            <label htmlFor="email" className="font-bold">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder="example@gmail.com"
-              className="p-4 w-full border border-foreground bg-background-light rounded-xl focus:outline-2 focus-visible:outline-2 focus:outline-foreground focus-visible:outline-foreground"
-            />
-          </div>
-          <div className="flex flex-col gap-2 w-full max-w-100 px-2">
-            <label htmlFor="password" className="font-bold">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              placeholder="••••••••"
-              className="p-4 w-full border border-foreground bg-background-light rounded-xl focus:outline-2 focus-visible:outline-2 focus:outline-foreground focus-visible:outline-foreground"
-            />
-          </div>
-          <button className="p-4 w-50 bg-accent rounded-full text-background font-bold hover:opacity-75 transition-all cursor-pointer mt-4">
-            Sign Up
-          </button>
-        </form>
+        <SignUpForm />
         <hr className="border border-background-light w-full max-w-150" />
         <section className="w-full max-w-150 flex gap-2">
           <form action={handleGoogleOAuth} className="flex-1">
@@ -119,9 +61,6 @@ export default function SignUpPage({ searchParams }: SignUpPageProps) {
           </Link>
         </section>
       </main>
-      <Suspense fallback={null}>
-        <ErrorDialog searchParams={searchParams} />
-      </Suspense>
     </div>
   );
 }
