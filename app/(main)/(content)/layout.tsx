@@ -14,8 +14,8 @@ export default async function MainRoot({ children }: MainRootProps) {
   const user = await getCurrentUser();
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-between bg-background font-sans">
-      <header className="flex justify-between items-center w-full p-3">
+    <div className="flex h-screen flex-col items-center justify-between overflow-hidden bg-background font-sans">
+      <header className="flex w-full shrink-0 items-center justify-between p-3">
         <div className="flex gap-2 items-center">
           <Icons.TempLogo className="text-xl text-primary" />
           <h1 className="font-bold text-xl text-primary">VibeQ</h1>
@@ -23,7 +23,7 @@ export default async function MainRoot({ children }: MainRootProps) {
         <SearchBar />
         <UserMenu user={user} />
       </header>
-      <main className="flex justify-between gap-2 flex-1 w-full">
+      <main className="flex min-h-0 w-full flex-1 justify-between gap-2">
         <section className="rounded-md bg-background-light p-4 w-60">
           <div className="flex justify-between items-center">
             <h2 className="text-md font-bold">Your Library</h2>
@@ -40,7 +40,7 @@ export default async function MainRoot({ children }: MainRootProps) {
         {children}
         <section className="rounded-md bg-background-light p-4 w-60"></section>
       </main>
-      <section className="h-30 w-full flex justify-center items-center">
+      <section className="flex h-30 w-full shrink-0 items-center justify-center">
         This is where the music player goes.
       </section>
     </div>
