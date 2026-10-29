@@ -8,6 +8,7 @@
   --primary: #8e1616;
   --secondary: #d84040;
   --accent: #d8b540;
+  --scrollbar-thumb: #816363;
 }
 
 @theme inline {
@@ -18,6 +19,7 @@
   --color-accent: var(--accent);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
+  --color-scrollbar-thumb: var(--scrollbar-thumb);
   --font-sans: var(--font-open-sans);
 }
 
