@@ -4,6 +4,7 @@ import { BiCabinet } from "react-icons/bi";
 import { FaBell, FaHeadphones, FaFileAudio, FaPlay } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { MdUpload } from "react-icons/md";
 
 export default {
   Home: RiHomeFill,
@@ -16,4 +17,5 @@ export default {
   AudioFile: FaFileAudio,
   Loading: AiOutlineLoading3Quarters,
   Play: FaPlay,
+  Upload: MdUpload,
 };
