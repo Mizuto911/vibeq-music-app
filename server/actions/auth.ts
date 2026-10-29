@@ -3,9 +3,14 @@
 import db from "@/db/database";
 import { hashPassword, isPasswordMatch } from "@/utils/pwHash";
 import { NeonDbError } from "@neondatabase/serverless";
-import { redirect } from "next/navigation";
 import { User, AuthError } from "next-auth";
 import { signIn } from "../auth";
+
+declare module "next-auth" {
+  interface User {
+    userType: "user" | "admin";
+  }
+}
 
 export type ActionResponse =
   | { success: true; user: User }
@@ -13,11 +18,11 @@ export type ActionResponse =
 
 export interface DatabaseUser {
   id: string;
-  user_name: string;
+  name: string;
   email: string;
-  created_at: Date | string;
-  image_url: string | null;
+  image: string | null;
   password: string;
+  user_type: "user" | "admin";
 }
 
 export type UserResponse = {
@@ -26,11 +31,11 @@ export type UserResponse = {
 };
 
 export async function createUser(formData: FormData): Promise<ActionResponse> {
-  const username = formData.get("username")?.toString().trim();
+  const name = formData.get("name")?.toString().trim();
   const email = formData.get("email")?.toString().trim().toLowerCase();
   const rawPassword = formData.get("password")?.toString();
 
-  if (!username) return { success: false, error: "Username is required." };
+  if (!name) return { success: false, error: "Username is required." };
   if (!email) return { success: false, error: "Email is required." };
   if (!rawPassword) return { success: false, error: "Password is required." };
 
@@ -38,17 +43,19 @@ export async function createUser(formData: FormData): Promise<ActionResponse> {
     const hashedPassword = await hashPassword(rawPassword);
 
     const [newUser] = (await db`
-      INSERT INTO users (user_name, email, password) 
-      VALUES (${username}, ${email}, ${hashedPassword})
-      RETURNING user_name, email, created_at, image_url
+      INSERT INTO users (name, email, password) 
+      VALUES (${name}, ${email}, ${hashedPassword})
+      RETURNING id, name, email, image, user_type
     `) as Omit<DatabaseUser, "password">[];
 
     return {
       success: true,
       user: {
-        name: newUser.user_name,
+        id: newUser.id,
+        name: newUser.name,
         email: newUser.email,
-        image: newUser?.image_url,
+        image: newUser?.image,
+        userType: newUser.user_type,
       },
     };
   } catch (error) {
@@ -118,15 +125,15 @@ export async function getUserFromEmailPassword(
       success: true,
       user: {
         id: user.id,
-        name: user.user_name,
+        name: user.name,
         email: user.email,
-        image: user.image_url,
+        image: user.image,
+        userType: user.user_type,
       },
     };
 }
 
 export async function SignInCredentials(formData: FormData) {
-  "use server";
   try {
     await signIn("credentials", {
       email: formData.get("email"),
