@@ -5,10 +5,11 @@ import { SignInCredentials } from "@/server/actions/auth";
 import { useRouter } from "next/navigation";
 import ErrorDialog from "./ErrorDialog";
 import clsx from "clsx";
+import LoadingIndicator from "./LoadingIndicator";
 
 export default function SignInForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
 
@@ -73,10 +74,16 @@ export default function SignInForm() {
         className={clsx(
           "p-4 w-50 bg-accent rounded-full text-background font-bold transition-all mt-4",
           isLoading && "opacity-50 cursor-not-allowed",
-          !isLoading && " hover:opacity-75 cursor-pointer ",
+          !isLoading && "hover:opacity-75 cursor-pointer",
         )}
       >
-        {isLoading ? "Logging In" : "Log In"}
+        {isLoading ? (
+          <span>
+            Logging In <LoadingIndicator />
+          </span>
+        ) : (
+          "Log In"
+        )}
       </button>
       <ErrorDialog
         message={error}

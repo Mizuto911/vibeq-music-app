@@ -3,6 +3,7 @@ import { IoSearchOutline, IoExpandSharp } from "react-icons/io5";
 import { BiCabinet } from "react-icons/bi";
 import { FaBell, FaHeadphones, FaFileAudio } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 export default {
   Home: RiHomeFill,
@@ -13,4 +14,5 @@ export default {
   Expand: IoExpandSharp,
   Dismiss: RxCross2,
   AudioFile: FaFileAudio,
+  Loading: AiOutlineLoading3Quarters,
 };

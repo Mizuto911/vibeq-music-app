@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, SubmitEvent } from "react";
 import clsx from "clsx";
 import ErrorDialog from "./ErrorDialog";
+import LoadingIndicator from "./LoadingIndicator";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -82,7 +83,13 @@ export default function SignUpForm() {
           !isLoading && " hover:opacity-75 cursor-pointer ",
         )}
       >
-        {isLoading ? "Signing Up" : "Sign Up"}
+        {isLoading ? (
+          <span>
+            Signing Up <LoadingIndicator />
+          </span>
+        ) : (
+          "Sign Up"
+        )}
       </button>
       <ErrorDialog
         message={error}
