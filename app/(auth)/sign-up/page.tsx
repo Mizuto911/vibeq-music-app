@@ -1,7 +1,5 @@
 import Icons from "@/utils/icons";
 import Image from "next/image";
-import { createUser } from "@/server/actions/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/server/auth";
 import SignUpForm from "../_components/SignUpForm";
@@ -22,7 +20,7 @@ export default function SignUpPage() {
       <main className="w-full h-full items-center justify-center max-w-250 flex flex-col gap-4 px-4">
         <Icons.TempLogo className="text-5xl text-primary" />
         <h1 className="text-4xl text-center font-bold text-primary">
-          Sign up to Start listening or post music!
+          Sign up to Start Listening to Music!
         </h1>
         <SignUpForm />
         <hr className="border border-background-light w-full max-w-150" />

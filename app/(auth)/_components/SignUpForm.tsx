@@ -41,13 +41,13 @@ export default function SignUpForm() {
       className="w-full flex flex-col items-center gap-4 my-4"
     >
       <div className="flex flex-col gap-2 w-full max-w-100 px-2">
-        <label htmlFor="username" className="font-bold">
+        <label htmlFor="name" className="font-bold">
           User Name
         </label>
         <input
           type="text"
-          name="username"
-          id="username"
+          name="name"
+          id="name"
           placeholder="e.g. JohnDoe3000"
           className="p-4 w-full border border-foreground bg-background-light rounded-xl focus:outline-2 focus-visible:outline-2 focus:outline-foreground focus-visible:outline-foreground"
         />
