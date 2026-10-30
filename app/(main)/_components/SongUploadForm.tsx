@@ -2,28 +2,78 @@
 
 import Icons from "@/utils/icons";
 import Image from "next/image";
-import { ChangeEvent, useState, useEffect } from "react";
+import {
+  ChangeEvent,
+  useState,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+  SubmitEvent,
+} from "react";
+import { FormState } from "./UploadForm";
+import { getArtists } from "@/server/actions/artist";
+import {
+  requestSongUploadURL,
+  requestCoverUploadURL,
+  createSong,
+} from "@/server/actions/song";
 import clsx from "clsx";
+import axios from "axios";
+
+interface SongUploadFormProps {
+  setToast: Dispatch<SetStateAction<string>>;
+  setState: Dispatch<SetStateAction<FormState>>;
+  setUploadProgress: Dispatch<SetStateAction<number>>;
+}
 
 type AudioFile = {
   file: File | null;
   name: string | null;
 };
 
-export default function SongUploadForm() {
-  const [titleLength, setTitleLength] = useState(0);
+type Artist = {
+  id: number;
+  name: string;
+};
+
+export default function SongUploadForm({
+  setState,
+  setToast,
+  setUploadProgress,
+}: SongUploadFormProps) {
+  const [title, setTitle] = useState("");
+  const [artistID, setArtistID] = useState("");
   const [audioFile, setAudioFile] = useState<AudioFile>({
     file: null,
     name: null,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewURL, setPreviewURL] = useState<string | null>(null);
+  const [artists, setArtists] = useState<Artist[]>([]);
+
+  useEffect(() => {
+    async function getArtistData() {
+      const response = await getArtists();
+      if (response.success) {
+        setArtists(response.data as Artist[]);
+      } else {
+        setToast(`Could not get artist data.`);
+      }
+    }
+    getArtistData();
+  }, []);
 
   useEffect(() => {
     return () => {
       if (previewURL) URL.revokeObjectURL(previewURL);
     };
   }, [previewURL]);
+
+  const artistOptions = artists.map((artist) => (
+    <option value={artist.id} key={artist.id}>
+      {artist.name}
+    </option>
+  ));
 
   function handleAudioFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -42,9 +92,106 @@ export default function SongUploadForm() {
     }
   }
 
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const formData = new FormData();
+
+    if (!title) {
+      setToast("❗ Please provide the song title.");
+      return;
+    }
+    if (!artistID) {
+      setToast("❗ Please provide the artist for the song.");
+      return;
+    }
+    if (!audioFile.file) {
+      setToast("❗ Please provide the song audio file to upload.");
+      return;
+    }
+
+    setToast("");
+    formData.append("title", title);
+    formData.append("artist_id", artistID);
+
+    setState("uploadAudio");
+    const audioExtension = audioFile.file.name.split(".").pop();
+    if (!audioExtension) throw Error("File does not have an extension.");
+    const { url, songID } = await requestSongUploadURL(audioExtension);
+
+    try {
+      await axios.put(url, audioFile.file, {
+        headers: {
+          "Content-Type": "audio/*",
+        },
+        onUploadProgress: (progressEvent) => {
+          const total = progressEvent.total || 1;
+          const current = progressEvent.loaded;
+          const percentCompleted = Math.round((current * 100) / total);
+          setUploadProgress(percentCompleted);
+        },
+      });
+      setUploadProgress(0);
+      formData.append("id", songID);
+      formData.append("extension", audioExtension);
+    } catch (e) {
+      setState("form");
+      setToast(`Something went wrong. ${String(e)}`);
+      return;
+    }
+
+    if (imageFile) {
+      setState("uploadPhoto");
+      const imageExtension = imageFile.name.split(".").pop();
+      if (!imageExtension) throw Error("File does not have an extension.");
+      const { url, coverID } = await requestCoverUploadURL(imageExtension);
+
+      try {
+        await axios.put(url, imageFile, {
+          headers: {
+            "Content-Type": "audio/*",
+          },
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total || 1;
+            const current = progressEvent.loaded;
+            const percentCompleted = Math.round((current * 100) / total);
+            setUploadProgress(percentCompleted);
+          },
+        });
+        setUploadProgress(0);
+        formData.append("cover_id", coverID);
+      } catch (e) {
+        setState("form");
+        setToast(`Something went wrong. ${String(e)}`);
+        return;
+      }
+    }
+
+    setState("recordDB");
+    const response = await createSong(formData);
+
+    if (!response.success) {
+      setState("form");
+      setToast(`Something went wrong. ${response.error}`);
+      return;
+    }
+
+    setState("form");
+    setTitle("");
+    setArtistID("");
+    setAudioFile({
+      file: null,
+      name: null,
+    });
+    setImageFile(null);
+    if (previewURL) URL.revokeObjectURL(previewURL);
+    setPreviewURL(null);
+    setToast("✅ Song added successfully.");
+  }
+
   return (
     <section className="w-full grid grid-cols-2">
-      <form action="">
+      <form onSubmit={handleSubmit}>
         <h2 className="text-xl font-bold mb-8">Details</h2>
         <div className="flex flex-col gap-2 mb-6">
           <label htmlFor="name" className="text-lg font-bold">
@@ -55,16 +202,16 @@ export default function SongUploadForm() {
             id="name"
             name="name"
             spellCheck={false}
-            onChange={(e) => setTitleLength(e.target.value.length)}
+            onChange={(e) => setTitle(e.target.value)}
             className="p-4 border-background-lighter bg-background border rounded-xl outline-foreground focus:outline-2 w-full"
           />
           <p
             className={clsx(
               "text-sm opacity-75",
-              titleLength > 100 && "text-red-600",
+              title.length > 100 && "text-red-600",
             )}
           >
-            Input: {titleLength}/100
+            Input: {title.length}/100
           </p>
         </div>
 
@@ -76,11 +223,11 @@ export default function SongUploadForm() {
             <select
               name="artist"
               id="artist"
+              onChange={(e) => setArtistID(e.target.value)}
               className="p-4 border-background-lighter bg-background border rounded-xl outline-foreground focus:outline-2 w-full appearance-none"
             >
               <option defaultValue="">Select an Artist</option>
-              <option value="towa">Tokoyami Towa</option>
-              <option value="calli">Calliope Mori</option>
+              {artistOptions ?? "No Artists Found."}
             </select>
             <Icons.DropDown className="pointer-events-none absolute right-4 top-1/2 z-10 size-5 -translate-y-1/2" />
           </div>
@@ -144,7 +291,7 @@ export default function SongUploadForm() {
             id="cover"
             className="opacity-0 w-[0.1px] h-[0.1px] absolute"
             onChange={handleImageFileChange}
-            accept=".jpeg, .png, .webp, .avif"
+            accept=".jpeg, .png, .webp, .avif, .jpg"
           />
           <label htmlFor="cover" className="cursor-pointer">
             <Icons.Edit />

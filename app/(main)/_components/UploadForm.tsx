@@ -35,7 +35,13 @@ function UploadDialog() {
   }, []);
 
   const tabLayout: Record<Tabs, ReactNode> = {
-    Song: <SongUploadForm />,
+    Song: (
+      <SongUploadForm
+        setToast={setToast}
+        setState={setState}
+        setUploadProgress={setUploadProgress}
+      />
+    ),
     Artist: (
       <ArtistUploadForm
         setToast={setToast}
@@ -43,6 +49,13 @@ function UploadDialog() {
         setUploadProgress={setUploadProgress}
       />
     ),
+  };
+
+  const loadingMessages: Record<FormState, string> = {
+    form: "",
+    uploadAudio: "Uploading Audio File",
+    uploadPhoto: "Uploading Image File",
+    recordDB: currentTab === "Song" ? "Adding Song" : "Adding Artist",
   };
 
   function handleTabChange(tab: Tabs) {
@@ -115,12 +128,10 @@ function UploadDialog() {
             <section className="flex-1 flex flex-col gap-5 justify-center items-center text-center">
               <Icons.Loading className="animate-spin text-6xl" />
               <div>
-                <p className="text-2xl font-bold">
-                  {state === "uploadPhoto"
-                    ? "Uploading Photo"
-                    : "Adding Artist"}
-                </p>
-                {state === "uploadPhoto" && <p>{uploadProgress}%</p>}
+                <p className="text-2xl font-bold">{loadingMessages[state]}</p>
+                {(state === "uploadPhoto" || state === "uploadAudio") && (
+                  <p>{uploadProgress}%</p>
+                )}
                 <p className="text-sm opacity-75">
                   Please don't exit this page
                 </p>
