@@ -159,7 +159,7 @@ export default function SongUploadForm({
           },
         });
         setUploadProgress(0);
-        formData.append("cover_id", coverID);
+        formData.append("cover_id", `${coverID}.${imageExtension}`);
       } catch (e) {
         setState("form");
         setToast(`Something went wrong. ${String(e)}`);
