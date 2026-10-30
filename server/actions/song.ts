@@ -3,8 +3,16 @@
 import db from "@/db/database";
 import { songFiles, songCoverFiles } from "../storage";
 
+export type Song = {
+  id: string;
+  cover_url?: string;
+  title: string;
+  artist_name: string;
+};
+
 export async function getSongs() {
-  const songs = await db`SELECT * FROM songs`;
+  const songs =
+    await db`SELECT songs.id, cover_url, title, name AS artist_name FROM songs LEFT JOIN artists on songs.artist_id = artists.id`;
   return { success: true, data: songs };
 }
 

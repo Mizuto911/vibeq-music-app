@@ -3,6 +3,13 @@
 import db from "@/db/database";
 import { profileFiles } from "../storage";
 
+export type Artist = {
+  id: number;
+  profile_url?: string;
+  description?: string;
+  name: string;
+};
+
 export async function getArtists() {
   const artists = await db`SELECT * FROM artists`;
   return { success: true, data: artists };
