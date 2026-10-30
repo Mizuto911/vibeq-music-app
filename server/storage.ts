@@ -2,7 +2,7 @@ import { Files } from "files-sdk";
 import { neon } from "files-sdk/neon";
 
 export const profileFiles = new Files({
-  adapter: neon({ bucket: "profile-images" }),
+  adapter: neon({ bucket: "profile-photos" }),
 });
 export const songCoverFiles = new Files({
   adapter: neon({ bucket: "song-covers" }),
