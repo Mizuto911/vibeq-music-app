@@ -1,10 +1,16 @@
 import { RiHomeFill } from "react-icons/ri";
-import { IoSearchOutline, IoExpandSharp } from "react-icons/io5";
+import {
+  IoSearchOutline,
+  IoExpandSharp,
+  IoMusicalNotesSharp,
+  IoPerson,
+} from "react-icons/io5";
 import { BiCabinet } from "react-icons/bi";
 import { FaBell, FaHeadphones, FaFileAudio, FaPlay } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { MdUpload } from "react-icons/md";
+import { MdUpload, MdModeEditOutline } from "react-icons/md";
+import { IoMdArrowDropdown } from "react-icons/io";
 
 export default {
   Home: RiHomeFill,
@@ -18,4 +24,8 @@ export default {
   Loading: AiOutlineLoading3Quarters,
   Play: FaPlay,
   Upload: MdUpload,
+  DropDown: IoMdArrowDropdown,
+  Edit: MdModeEditOutline,
+  Note: IoMusicalNotesSharp,
+  Artist: IoPerson,
 };
