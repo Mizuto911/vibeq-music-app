@@ -1,5 +1,3 @@
-import Icons from "@/utils/icons";
-import Link from "next/link";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 
