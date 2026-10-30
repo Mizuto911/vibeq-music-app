@@ -1,36 +1,54 @@
 "use server";
 
 import db from "@/db/database";
-import { songFiles } from "../storage";
+import { songFiles, songCoverFiles } from "../storage";
 
 export async function getSongs() {
   const songs = await db`SELECT * FROM songs`;
   return { success: true, data: songs };
 }
 
-export async function requestUploadURL(mimeType: string) {
+export async function requestSongUploadURL(extType: string) {
   const songID = crypto.randomUUID();
   const { url, method } = await songFiles.signedUploadUrl(
-    `${songID}.${mimeType}`,
+    `${songID}.${extType}`,
     {
-      contentType: `audio/${mimeType}`,
-      expiresIn: 600,
+      contentType: `audio/*`,
+      expiresIn: 300,
     },
   );
 
   return { url, method, songID };
 }
 
+export async function requestCoverUploadURL(extType: string) {
+  const coverID = crypto.randomUUID();
+  const { url, method } = await songCoverFiles.signedUploadUrl(
+    `${coverID}.${extType}`,
+    {
+      contentType: "audio/*",
+      expiresIn: 300,
+    },
+  );
+
+  return { url, method, coverID };
+}
+
 export async function createSong(formData: FormData) {
-  const songName = formData.get("song_name");
+  const title = formData.get("title");
   const artistID = formData.get("artist_id");
   const songID = formData.get("id");
-  const coverURL = formData.get("cover_url");
+  const extension = formData.get("extension");
+  const coverID = formData.get("cover_id");
+
+  const coverURL = coverID
+    ? `${process.env.AWS_ENDPOINT_URL_S3}/song-covers/${coverID}`
+    : null;
 
   try {
     const [newSong] = await db`
-      INSERT INTO songs (id, song_name, artist_id, cover_url)
-      VALUES (${songID}, ${songName}, ${artistID}, ${coverURL})
+      INSERT INTO songs (id, title, artist_id, cover_url, ext_type)
+      VALUES (${songID}, ${title}, ${artistID}, ${coverURL}, ${extension})
       RETURNING *
     `;
     return { success: true, data: newSong };
