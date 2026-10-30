@@ -30,7 +30,12 @@ export default function UserMenu({ user }: UserMenuProps) {
       {user ? (
         <>
           {user.userType === "admin" && (
-            <Icons.Upload className="text-xl cursor-pointer hover:scale-110 transition-transform" />
+            <button
+              className="cursor-pointer hover:scale-110 transition-transform text-xl"
+              onClick={() => router.replace("/?upload_form=true")}
+            >
+              <Icons.Upload />
+            </button>
           )}
           <Icons.Notification className="text-xl cursor-pointer hover:scale-110 transition-transform" />
           <div className="relative">
