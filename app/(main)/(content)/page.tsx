@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import SongItem from "../_components/SongItem";
 import ArtistItem from "../_components/ArtistItem";
 import UploadForm from "../_components/UploadForm";
+import { Artist, getArtists } from "@/server/actions/artist";
+import { Song, getSongs } from "@/server/actions/song";
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -18,29 +20,17 @@ export default async function Home({ searchParams }: HomeProps) {
       <div>
         <h2 className="text-xl font-bold">Recommended For You</h2>
         <div className="flex flex-row gap-8">
-          <SongItem
-            coverSrc="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTD59MrebBZDwcO4nhltZBbi5nxEf7fBXrh3y7hAZXwJOHzYPjcGngeV1DO&s=10"
-            name="FACT"
-            artist="Tokoyami Towa"
-          />
-          <SongItem
-            coverSrc="https://i.scdn.co/image/ab67616d0000b273bfa10b02c2e327512715b08b"
-            name="RED"
-            artist="Calliope Mori"
-          />
+          <Suspense fallback={<p>Loading Songs...</p>}>
+            <SongList />
+          </Suspense>
         </div>
       </div>
       <div className="mt-8">
         <h2 className="text-xl font-bold">Your Favorite Artists</h2>
         <div className="flex flex-row gap-8">
-          <ArtistItem
-            profileSrc="https://hololive.hololivepro.com/wp-content/uploads/2025/06/BAZUBIBAZAB.png"
-            name="Tokoyami Towa"
-          />
-          <ArtistItem
-            profileSrc="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4WMTZTh1kHmtPYsIHKpn2WyPcLV_wO7Y9s3F1ZA5AlUOPgf5vMUVNVscf&s=10"
-            name="Calliope Mori"
-          />
+          <Suspense fallback={<p>Loading Artists...</p>}>
+            <ArtistList />
+          </Suspense>
         </div>
       </div>
       <Suspense fallback={null}>
@@ -89,4 +79,31 @@ async function NavMenu({ searchParams }: HomeProps) {
       </Link>
     </nav>
   );
+}
+
+async function ArtistList() {
+  const artists = (await getArtists()) as { success: boolean; data: Artist[] };
+  const artistItems = artists.data.map((artist) => (
+    <ArtistItem
+      key={artist.id}
+      name={artist.name}
+      profileSrc={artist.profile_url}
+    />
+  ));
+
+  return <>{artistItems}</>;
+}
+
+async function SongList() {
+  const songs = (await getSongs()) as { success: boolean; data: Song[] };
+  const songItems = songs.data.map((song) => (
+    <SongItem
+      key={song.id}
+      coverSrc={song.cover_url}
+      name={song.title}
+      artist={song.artist_name}
+    />
+  ));
+
+  return <>{songItems}</>;
 }
