@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { Suspense } from "react";
 import SongItem from "../_components/SongItem";
 import ArtistItem from "../_components/ArtistItem";
+import UploadForm from "../_components/UploadForm";
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -42,6 +43,9 @@ export default async function Home({ searchParams }: HomeProps) {
           />
         </div>
       </div>
+      <Suspense fallback={null}>
+        <UploadForm searchParams={searchParams} />
+      </Suspense>
     </section>
   );
 }
