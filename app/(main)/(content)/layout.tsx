@@ -4,6 +4,7 @@ import Icons from "@/utils/icons";
 import SearchBar from "../_components/SearchBar";
 import UserMenu from "../_components/UserMenu";
 import { ReactNode } from "react";
+import MusicPlayer from "../_components/MusicPlayer";
 
 interface MainRootProps {
   children: ReactNode;
@@ -40,9 +41,7 @@ export default async function MainRoot({ children }: MainRootProps) {
         {children}
         <section className="rounded-md bg-background-light p-4 w-60"></section>
       </main>
-      <section className="flex h-30 w-full shrink-0 items-center justify-center">
-        This is where the music player goes.
-      </section>
+      <MusicPlayer />
     </div>
   );
 }
