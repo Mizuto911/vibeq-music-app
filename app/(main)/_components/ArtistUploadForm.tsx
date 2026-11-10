@@ -2,29 +2,22 @@
 
 import Icons from "@/utils/icons";
 import Image from "next/image";
-import {
-  useState,
-  ChangeEvent,
-  SubmitEvent,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from "react";
+import { useState, ChangeEvent, SubmitEvent, useEffect } from "react";
 import clsx from "clsx";
 import { createArtist, requestProfileUploadUrl } from "@/server/actions/artist";
 import { FormState } from "./UploadForm";
 import axios from "axios";
 
 interface ArtistUploadFormProps {
-  setToast: Dispatch<SetStateAction<string>>;
-  setState: Dispatch<SetStateAction<FormState>>;
-  setUploadProgress: Dispatch<SetStateAction<number>>;
+  onNotif: (message: string) => void;
+  onStateChange: (state: FormState) => void;
+  onProgressUpdate: (progress: number) => void;
 }
 
 export default function ArtistUploadForm({
-  setToast,
-  setState,
-  setUploadProgress,
+  onNotif,
+  onStateChange,
+  onProgressUpdate,
 }: ArtistUploadFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -42,14 +35,14 @@ export default function ArtistUploadForm({
 
     const formData = new FormData();
     if (!name) {
-      setToast("❗ Please provide the artist name.");
+      onNotif("❗ Please provide the artist name.");
       return;
     }
-    setToast("");
+    onNotif("");
     formData.append("name", name);
 
     if (imageFile) {
-      setState("uploadPhoto");
+      onStateChange("uploadPhoto");
       const extension = imageFile.name.split(".").pop();
       if (!extension) throw Error("File does not have an extension.");
       const { url, profileID } = await requestProfileUploadUrl(extension);
@@ -63,34 +56,34 @@ export default function ArtistUploadForm({
             const total = progressEvent.total || 1;
             const current = progressEvent.loaded;
             const percentCompleted = Math.round((current * 100) / total);
-            setUploadProgress(percentCompleted);
+            onProgressUpdate(percentCompleted);
           },
         });
-        setUploadProgress(0);
+        onProgressUpdate(0);
         formData.append("profile_id", `${profileID}.${extension}`);
       } catch (e) {
-        setState("form");
-        setToast(`Something went wrong. ${String(e)}`);
+        onStateChange("form");
+        onNotif(`Something went wrong. ${String(e)}`);
         return;
       }
     }
 
-    setState("recordDB");
+    onStateChange("recordDB");
     if (description) formData.append("description", description);
     const response = await createArtist(formData);
 
     if (!response.success) {
-      setState("form");
-      setToast(`Something went wrong. ${response.error}`);
+      onStateChange("form");
+      onNotif(`Something went wrong. ${response.error}`);
     }
 
-    setState("form");
+    onStateChange("form");
     setName("");
     setDescription("");
     setImageFile(null);
     if (previewURL) URL.revokeObjectURL(previewURL);
     setPreviewURL(null);
-    setToast("✅ Artist added successfully.");
+    onNotif("✅ Artist added successfully.");
   }
 
   function handleImageFileChange(e: ChangeEvent<HTMLInputElement>) {

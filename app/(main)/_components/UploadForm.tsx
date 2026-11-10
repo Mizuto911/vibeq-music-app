@@ -37,16 +37,16 @@ function UploadDialog() {
   const tabLayout: Record<Tabs, ReactNode> = {
     Song: (
       <SongUploadForm
-        setToast={setToast}
-        setState={setState}
-        setUploadProgress={setUploadProgress}
+        onNotif={(message) => setToast(message)}
+        onStateChange={(state) => setState(state)}
+        onProgressUpdate={(progress) => setUploadProgress(progress)}
       />
     ),
     Artist: (
       <ArtistUploadForm
-        setToast={setToast}
-        setState={setState}
-        setUploadProgress={setUploadProgress}
+        onNotif={(message) => setToast(message)}
+        onStateChange={(state) => setState(state)}
+        onProgressUpdate={(progress) => setUploadProgress(progress)}
       />
     ),
   };

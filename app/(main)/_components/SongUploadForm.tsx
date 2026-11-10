@@ -2,14 +2,7 @@
 
 import Icons from "@/utils/icons";
 import Image from "next/image";
-import {
-  ChangeEvent,
-  useState,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-  SubmitEvent,
-} from "react";
+import { ChangeEvent, useState, useEffect, SubmitEvent } from "react";
 import { FormState } from "./UploadForm";
 import { getArtists } from "@/server/actions/artist";
 import {
@@ -21,9 +14,9 @@ import clsx from "clsx";
 import axios from "axios";
 
 interface SongUploadFormProps {
-  setToast: Dispatch<SetStateAction<string>>;
-  setState: Dispatch<SetStateAction<FormState>>;
-  setUploadProgress: Dispatch<SetStateAction<number>>;
+  onNotif: (message: string) => void;
+  onStateChange: (state: FormState) => void;
+  onProgressUpdate: (progress: number) => void;
 }
 
 type AudioFile = {
@@ -37,9 +30,9 @@ type Artist = {
 };
 
 export default function SongUploadForm({
-  setState,
-  setToast,
-  setUploadProgress,
+  onStateChange,
+  onNotif,
+  onProgressUpdate,
 }: SongUploadFormProps) {
   const [title, setTitle] = useState("");
   const [artistID, setArtistID] = useState("");
@@ -57,7 +50,7 @@ export default function SongUploadForm({
       if (response.success) {
         setArtists(response.data as Artist[]);
       } else {
-        setToast(`Could not get artist data.`);
+        onNotif(`Could not get artist data.`);
       }
     }
     getArtistData();
@@ -98,23 +91,23 @@ export default function SongUploadForm({
     const formData = new FormData();
 
     if (!title) {
-      setToast("❗ Please provide the song title.");
+      onNotif("❗ Please provide the song title.");
       return;
     }
     if (!artistID) {
-      setToast("❗ Please provide the artist for the song.");
+      onNotif("❗ Please provide the artist for the song.");
       return;
     }
     if (!audioFile.file) {
-      setToast("❗ Please provide the song audio file to upload.");
+      onNotif("❗ Please provide the song audio file to upload.");
       return;
     }
 
-    setToast("");
+    onNotif("");
     formData.append("title", title);
     formData.append("artist_id", artistID);
 
-    setState("uploadAudio");
+    onStateChange("uploadAudio");
     const audioExtension = audioFile.file.name.split(".").pop();
     if (!audioExtension) throw Error("File does not have an extension.");
     const { url, songID } = await requestSongUploadURL(audioExtension);
@@ -128,20 +121,20 @@ export default function SongUploadForm({
           const total = progressEvent.total || 1;
           const current = progressEvent.loaded;
           const percentCompleted = Math.round((current * 100) / total);
-          setUploadProgress(percentCompleted);
+          onProgressUpdate(percentCompleted);
         },
       });
-      setUploadProgress(0);
+      onProgressUpdate(0);
       formData.append("id", songID);
       formData.append("extension", audioExtension);
     } catch (e) {
-      setState("form");
-      setToast(`Something went wrong. ${String(e)}`);
+      onStateChange("form");
+      onNotif(`Something went wrong. ${String(e)}`);
       return;
     }
 
     if (imageFile) {
-      setState("uploadPhoto");
+      onStateChange("uploadPhoto");
       const imageExtension = imageFile.name.split(".").pop();
       if (!imageExtension) throw Error("File does not have an extension.");
       const { url, coverID } = await requestCoverUploadURL(imageExtension);
@@ -155,28 +148,28 @@ export default function SongUploadForm({
             const total = progressEvent.total || 1;
             const current = progressEvent.loaded;
             const percentCompleted = Math.round((current * 100) / total);
-            setUploadProgress(percentCompleted);
+            onProgressUpdate(percentCompleted);
           },
         });
-        setUploadProgress(0);
+        onProgressUpdate(0);
         formData.append("cover_id", `${coverID}.${imageExtension}`);
       } catch (e) {
-        setState("form");
-        setToast(`Something went wrong. ${String(e)}`);
+        onStateChange("form");
+        onNotif(`Something went wrong. ${String(e)}`);
         return;
       }
     }
 
-    setState("recordDB");
+    onStateChange("recordDB");
     const response = await createSong(formData);
 
     if (!response.success) {
-      setState("form");
-      setToast(`Something went wrong. ${response.error}`);
+      onStateChange("form");
+      onNotif(`Something went wrong. ${response.error}`);
       return;
     }
 
-    setState("form");
+    onStateChange("form");
     setTitle("");
     setArtistID("");
     setAudioFile({
@@ -186,7 +179,7 @@ export default function SongUploadForm({
     setImageFile(null);
     if (previewURL) URL.revokeObjectURL(previewURL);
     setPreviewURL(null);
-    setToast("✅ Song added successfully.");
+    onNotif("✅ Song added successfully.");
   }
 
   return (
