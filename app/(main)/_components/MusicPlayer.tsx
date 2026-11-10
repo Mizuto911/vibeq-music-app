@@ -2,6 +2,13 @@
 
 import Image from "next/image";
 import Icons from "@/utils/icons";
+import { MouseEvent, useState } from "react";
+import clsx from "clsx";
+
+interface SliderProps {
+  className?: string;
+  defaultVal?: number;
+}
 
 export default function MusicPlayer() {
   return (
@@ -29,13 +36,57 @@ export default function MusicPlayer() {
           <Icons.NextMusic className="text-xl" />
           <Icons.Loop className="text-xl" />
         </div>
-        <input type="range" className="w-[50%]" />
+        <div className="w-full flex justify-center items-center gap-2 text-sm">
+          <p>0:00</p>
+          <Slider className="w-[50%]" />
+          <p>0:00</p>
+        </div>
       </div>
       <div className="w-60 flex items-center justify-end gap-4">
         <Icons.MusicQueue className="text-xl" />
         <Icons.VolumeHigh className="text-xl" />
-        <input type="range" />
+        <Slider defaultVal={100} />
       </div>
     </section>
+  );
+}
+
+function Slider({ className, defaultVal }: SliderProps) {
+  const [percentage, setPercentage] = useState(
+    defaultVal == null ? 0 : defaultVal,
+  );
+  const [hoverPercent, setHoverPercent] = useState<number | null>(null);
+
+  function handleElementHover(
+    e: MouseEvent<HTMLInputElement, globalThis.MouseEvent>,
+  ) {
+    const elementRect = e.currentTarget.getBoundingClientRect();
+
+    const width = Math.round(elementRect.width);
+    const x = Math.round(e.clientX - elementRect.x);
+
+    const hp = (x / width) * 100;
+    setHoverPercent(hp > percentage ? hp : null);
+  }
+
+  return (
+    <input
+      min={0}
+      max={100}
+      value={percentage}
+      onMouseLeave={() => setHoverPercent(null)}
+      onMouseMove={handleElementHover}
+      onChange={(e) => setPercentage(Number(e.target.value))}
+      type="range"
+      style={{
+        background: `linear-gradient(to right, var(--accent) ${percentage}%, var(--background-lighter) ${percentage}%, var(--background-lighter) ${hoverPercent ?? percentage}%, var(--background-light) ${hoverPercent ?? percentage}%)`,
+      }}
+      className={clsx(
+        className,
+        `h-1.5 rounded-full appearance-none cursor-pointer 
+        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform
+        [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-foreground [&::-moz-range-thumb]:hover:scale-105 [&::-moz-range-thumb]:transition-transform`,
+      )}
+    />
   );
 }
