@@ -2,15 +2,19 @@
 
 import Image from "next/image";
 import Icons from "@/utils/icons";
-import { MouseEvent, useState } from "react";
-import clsx from "clsx";
+import { ChangeEvent, MouseEvent, useState } from "react";
 
 interface SliderProps {
   className?: string;
-  defaultVal?: number;
+  min: number;
+  max: number;
+  value: number;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
 export default function MusicPlayer() {
+  const [musicTime, setMusicTime] = useState(0);
+  const [volume, setVolume] = useState(100);
   return (
     <section className="flex h-30 w-full shrink-0 items-center justify-between p-4">
       <div className="flex gap-4 w-60 items-center">
@@ -38,55 +42,69 @@ export default function MusicPlayer() {
         </div>
         <div className="w-full flex justify-center items-center gap-2 text-sm">
           <p>0:00</p>
-          <Slider className="w-[50%]" />
+          <Slider
+            min={0}
+            max={100}
+            value={musicTime}
+            onChange={(e) => setMusicTime(Number(e.target.value))}
+            className="w-[50%]"
+          />
           <p>0:00</p>
         </div>
       </div>
       <div className="w-60 flex items-center justify-end gap-4">
         <Icons.MusicQueue className="text-xl" />
         <Icons.VolumeHigh className="text-xl" />
-        <Slider defaultVal={100} />
+        <Slider
+          min={0}
+          max={100}
+          value={volume}
+          onChange={(e) => setVolume(Number(e.target.value))}
+        />
       </div>
     </section>
   );
 }
 
-function Slider({ className, defaultVal }: SliderProps) {
-  const [percentage, setPercentage] = useState(
-    defaultVal == null ? 0 : defaultVal,
-  );
+function Slider({ className, min, max, value, onChange }: SliderProps) {
+  const percentage = Math.round((value / max) * 100);
   const [hoverPercent, setHoverPercent] = useState<number | null>(null);
 
-  function handleElementHover(
-    e: MouseEvent<HTMLInputElement, globalThis.MouseEvent>,
-  ) {
+  function handleElementHover(e: MouseEvent<HTMLInputElement>) {
     const elementRect = e.currentTarget.getBoundingClientRect();
 
     const width = Math.round(elementRect.width);
     const x = Math.round(e.clientX - elementRect.x);
 
-    const hp = (x / width) * 100;
+    const hp = Math.round((x / width) * 100);
     setHoverPercent(hp > percentage ? hp : null);
   }
 
   return (
-    <input
-      min={0}
-      max={100}
-      value={percentage}
-      onMouseLeave={() => setHoverPercent(null)}
-      onMouseMove={handleElementHover}
-      onChange={(e) => setPercentage(Number(e.target.value))}
-      type="range"
+    <div
       style={{
-        background: `linear-gradient(to right, var(--accent) ${percentage}%, var(--background-lighter) ${percentage}%, var(--background-lighter) ${hoverPercent ?? percentage}%, var(--background-light) ${hoverPercent ?? percentage}%)`,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
-      className={clsx(
-        className,
-        `h-1.5 rounded-full appearance-none cursor-pointer 
-        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform
-        [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-foreground [&::-moz-range-thumb]:hover:scale-105 [&::-moz-range-thumb]:transition-transform`,
-      )}
-    />
+      className={className}
+    >
+      <input
+        min={min}
+        max={max}
+        value={value}
+        onMouseLeave={() => setHoverPercent(null)}
+        onMouseMove={handleElementHover}
+        onChange={onChange ? (e) => onChange(e) : undefined}
+        type="range"
+        style={{
+          background: `linear-gradient(to right, var(--accent) ${percentage}%, var(--background-lighter) ${percentage}%, var(--background-lighter) ${hoverPercent ?? percentage}%, var(--background-light) ${hoverPercent ?? percentage}%)`,
+        }}
+        className="w-full h-1.5 rounded-full appearance-none cursor-pointer 
+          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform
+          [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-foreground [&::-moz-range-thumb]:hover:scale-105 [&::-moz-range-thumb]:transition-transform`,
+        "
+      />
+    </div>
   );
 }
