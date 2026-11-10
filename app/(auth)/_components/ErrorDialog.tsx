@@ -8,13 +8,13 @@ import Icons from "@/utils/icons";
 interface ErrorDialogProps {
   message: string | null;
   show: boolean;
-  setShowError: Dispatch<SetStateAction<boolean>>;
+  onCancel?: () => void;
 }
 
 export default function ErrorDialog({
   message,
   show,
-  setShowError,
+  onCancel,
 }: ErrorDialogProps) {
   return (
     <div
@@ -25,10 +25,7 @@ export default function ErrorDialog({
       )}
     >
       <p className="p-4 text-sm">{message}</p>
-      <button
-        className="cursor-pointer me-2"
-        onClick={() => setShowError(false)}
-      >
+      <button className="cursor-pointer me-2" onClick={onCancel}>
         <Icons.Dismiss className="text-md" />
       </button>
     </div>

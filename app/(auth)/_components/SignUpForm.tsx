@@ -94,7 +94,7 @@ export default function SignUpForm() {
       <ErrorDialog
         message={error}
         show={showError}
-        setShowError={setShowError}
+        onCancel={() => setShowError(false)}
       />
     </form>
   );
