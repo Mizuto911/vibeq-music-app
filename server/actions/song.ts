@@ -64,3 +64,8 @@ export async function createSong(formData: FormData) {
     return { success: false, error: String(e) };
   }
 }
+
+export async function requestSongURL(key: string) {
+  const url = await songFiles.url(key, { expiresIn: 500 });
+  return url;
+}
