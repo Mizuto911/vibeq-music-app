@@ -2,10 +2,13 @@
 
 import Image from "next/image";
 import Icons from "@/utils/icons";
-import { ChangeEvent, MouseEvent, useState } from "react";
+import timeFormatter from "@/utils/timeFormatter";
+import { requestSongURL } from "@/server/actions/song";
+import { ChangeEvent, MouseEvent, useState, useRef, useEffect } from "react";
 
 interface SliderProps {
   className?: string;
+  step?: number;
   min: number;
   max: number;
   value: number;
@@ -13,8 +16,66 @@ interface SliderProps {
 }
 
 export default function MusicPlayer() {
-  const [musicTime, setMusicTime] = useState(0);
-  const [volume, setVolume] = useState(100);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [currentSong, setCurrentSong] = useState<string>();
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    async function getCurrentSong() {
+      const url = await requestSongURL(
+        "4f96951e-0b4a-4512-9192-2fb6e8a33eee.mp3",
+      );
+      setCurrentSong(url);
+    }
+    getCurrentSong();
+  }, []);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (audioRef.current)
+      audioRef.current.onloadedmetadata = () => {
+        if (audioRef.current) setDuration(audioRef.current.duration);
+      };
+  }, [currentSong]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    function handleTimeUpdate() {
+      if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+    }
+    function pauseMusic() {
+      if (audioRef.current) setIsPlaying(false);
+    }
+    audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
+    audioRef.current.addEventListener("ended", pauseMusic);
+    return () => {
+      audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
+      audioRef.current?.removeEventListener("ended", pauseMusic);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume;
+  }, [volume]);
+
+  function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
+    if (!currentSong) return;
+    const time = Number(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) audioRef.current.currentTime = time;
+  }
+
   return (
     <section className="flex h-30 w-full shrink-0 items-center justify-between p-4">
       <div className="flex gap-4 w-60 items-center">
@@ -31,25 +92,33 @@ export default function MusicPlayer() {
         </div>
       </div>
       <div className="flex-1 flex gap-3 flex-col justify-center items-center">
+        <audio src={currentSong} ref={audioRef} />
         <div className="flex gap-4 justify-center items-center w-[50%]">
           <Icons.Shuffle className="text-xl" />
           <Icons.PreviousMusic className="text-xl" />
-          <button className="p-3 rounded-full bg-foreground">
-            <Icons.Play className="text-xl text-background" />
+          <button
+            onClick={() => setIsPlaying((prev) => !prev)}
+            className="p-3 rounded-full bg-foreground cursor-pointer transition-transform hover:scale-105 active:scale-95"
+          >
+            {isPlaying ? (
+              <Icons.Pause className="text-xl text-background" />
+            ) : (
+              <Icons.Play className="text-xl text-background" />
+            )}
           </button>
           <Icons.NextMusic className="text-xl" />
           <Icons.Loop className="text-xl" />
         </div>
         <div className="w-full flex justify-center items-center gap-2 text-sm">
-          <p>0:00</p>
+          <p>{timeFormatter(currentTime)}</p>
           <Slider
             min={0}
-            max={100}
-            value={musicTime}
-            onChange={(e) => setMusicTime(Number(e.target.value))}
+            max={duration || 100}
+            value={currentSong ? Math.round(currentTime) : 0}
+            onChange={handleTimeChange}
             className="w-[50%]"
           />
-          <p>0:00</p>
+          <p>{timeFormatter(duration)}</p>
         </div>
       </div>
       <div className="w-60 flex items-center justify-end gap-4">
@@ -57,7 +126,8 @@ export default function MusicPlayer() {
         <Icons.VolumeHigh className="text-xl" />
         <Slider
           min={0}
-          max={100}
+          max={1}
+          step={0.1}
           value={volume}
           onChange={(e) => setVolume(Number(e.target.value))}
         />
@@ -66,17 +136,17 @@ export default function MusicPlayer() {
   );
 }
 
-function Slider({ className, min, max, value, onChange }: SliderProps) {
-  const percentage = Math.round((value / max) * 100);
+function Slider({ className, min, max, value, step, onChange }: SliderProps) {
+  const percentage = (value / max) * 100;
   const [hoverPercent, setHoverPercent] = useState<number | null>(null);
 
   function handleElementHover(e: MouseEvent<HTMLInputElement>) {
     const elementRect = e.currentTarget.getBoundingClientRect();
 
-    const width = Math.round(elementRect.width);
-    const x = Math.round(e.clientX - elementRect.x);
+    const width = elementRect.width;
+    const x = e.clientX - elementRect.x;
 
-    const hp = Math.round((x / width) * 100);
+    const hp = (x / width) * 100;
     setHoverPercent(hp > percentage ? hp : null);
   }
 
@@ -92,10 +162,11 @@ function Slider({ className, min, max, value, onChange }: SliderProps) {
       <input
         min={min}
         max={max}
+        step={step ?? 1}
         value={value}
         onMouseLeave={() => setHoverPercent(null)}
         onMouseMove={handleElementHover}
-        onChange={onChange ? (e) => onChange(e) : undefined}
+        onChange={onChange}
         type="range"
         style={{
           background: `linear-gradient(to right, var(--accent) ${percentage}%, var(--background-lighter) ${percentage}%, var(--background-lighter) ${hoverPercent ?? percentage}%, var(--background-light) ${hoverPercent ?? percentage}%)`,
