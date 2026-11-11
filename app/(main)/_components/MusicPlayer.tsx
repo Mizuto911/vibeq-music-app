@@ -5,96 +5,51 @@ import Icons from "@/utils/icons";
 import timeFormatter from "@/utils/timeFormatter";
 import Slider from "./Slider";
 import { requestSongURL } from "@/server/actions/song";
-import { ChangeEvent, useState, useRef, useEffect } from "react";
+import { ChangeEvent, useEffect } from "react";
+import useMusicPlayerState from "@/hooks/useMusicPlayerState";
 import clsx from "clsx";
 
 export default function MusicPlayer() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [currentSong, setCurrentSong] = useState<string>();
-  const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const {
+    audioRef,
+    player,
+    loadSong,
+    setDuration,
+    togglePlaying,
+    setPlaying,
+    updateTime,
+    setLoading,
+    toggleMute,
+    setVolume,
+  } = useMusicPlayerState();
 
   useEffect(() => {
     async function getCurrentSong() {
       const url = await requestSongURL(
-        "34ae8eec-564a-4b5f-88b3-479155290eb4.mp3",
+        "4f96951e-0b4a-4512-9192-2fb6e8a33eee.mp3",
       );
-      setCurrentSong(url);
+      loadSong(url);
     }
     getCurrentSong();
   }, []);
 
-  useEffect(() => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.play();
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    function loadDuration() {
-      if (audioRef.current) setDuration(audioRef.current.duration);
-    }
-    audioRef.current.addEventListener("loadedmetadata", loadDuration);
-    return () =>
-      audioRef.current?.removeEventListener("loadedmetadata", loadDuration);
-  }, [currentSong]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    function handleTimeUpdate() {
-      if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
-    }
-    function stopMusic() {
-      if (audioRef.current) setIsPlaying(false);
-    }
-    function showLoading() {
-      if (audioRef.current) setIsLoading(true);
-    }
-    function hideLoading() {
-      if (audioRef.current) setIsLoading(false);
-    }
-    audioRef.current.addEventListener("waiting", showLoading);
-    audioRef.current.addEventListener("loadstart", showLoading);
-    audioRef.current.addEventListener("canplay", hideLoading);
-    audioRef.current.addEventListener("playing", hideLoading);
-    audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
-    audioRef.current.addEventListener("ended", stopMusic);
-    return () => {
-      audioRef.current?.removeEventListener("waiting", showLoading);
-      audioRef.current?.removeEventListener("loadstart", showLoading);
-      audioRef.current?.removeEventListener("canplay", hideLoading);
-      audioRef.current?.removeEventListener("playing", hideLoading);
-      audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
-      audioRef.current?.removeEventListener("ended", stopMusic);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    if (muted) {
-      audioRef.current.volume = 0;
-      return;
-    }
-    audioRef.current.volume = volume;
-  }, [volume, muted]);
-
   function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
-    if (!currentSong) return;
+    if (!player.currentSong) return;
     const time = Number(e.target.value);
-    setCurrentTime(time);
+    updateTime(time);
     if (audioRef.current) audioRef.current.currentTime = time;
   }
 
+  function handleTimeUpdate() {
+    if (audioRef.current) updateTime(audioRef.current.currentTime);
+  }
+
+  function handleLoadedMetaData() {
+    if (audioRef.current) setDuration(audioRef.current.duration);
+  }
+
   function handleVolumeChange(e: ChangeEvent<HTMLInputElement>) {
-    if (muted) return;
+    if (player.muted) return;
     setVolume(Number(e.target.value));
   }
 
@@ -115,25 +70,36 @@ export default function MusicPlayer() {
       </div>
       <div
         className={clsx(
-          !currentSong && "opacity-50",
+          !player.currentSong && "opacity-50",
           "flex-1 flex gap-3 flex-col justify-center items-center",
         )}
       >
-        <audio src={currentSong} ref={audioRef} />
+        <audio
+          src={player.currentSong}
+          ref={audioRef}
+          onLoadedMetadata={handleLoadedMetaData}
+          onWaiting={() => setLoading(true)}
+          onLoadStart={() => setLoading(true)}
+          onCanPlay={() => setLoading(false)}
+          onPlaying={() => setLoading(false)}
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={() => setPlaying(false)}
+        />
         <div className="flex gap-4 justify-center items-center w-[50%]">
           <Icons.Shuffle className="text-xl" />
           <Icons.PreviousMusic className="text-xl" />
           <button
-            disabled={!currentSong}
-            onClick={() => setIsPlaying((prev) => !prev)}
+            disabled={!player.currentSong}
+            onClick={togglePlaying}
             className={clsx(
-              currentSong && "cursor-pointer hover:scale-105 active:scale-95",
+              player.currentSong &&
+                "cursor-pointer hover:scale-105 active:scale-95",
               "p-3 rounded-full bg-foreground transition-transform",
             )}
           >
-            {isLoading ? (
+            {player.isLoading ? (
               <Icons.Loading className="text-xl text-background animate-spin" />
-            ) : isPlaying ? (
+            ) : player.isPlaying ? (
               <Icons.Pause className="text-xl text-background" />
             ) : (
               <Icons.Play className="text-xl text-background" />
@@ -143,25 +109,25 @@ export default function MusicPlayer() {
           <Icons.Loop className="text-xl" />
         </div>
         <div className="w-full flex justify-center items-center gap-2 text-sm">
-          <p>{timeFormatter(currentTime)}</p>
+          <p>{timeFormatter(player.currentTime)}</p>
           <Slider
             min={0}
-            max={duration || 100}
-            disabled={!currentSong}
-            value={currentSong ? Math.round(currentTime) : 0}
+            max={player.duration || 100}
+            disabled={!player.currentSong}
+            value={player.currentSong ? Math.round(player.currentTime) : 0}
             onChange={handleTimeChange}
             className="w-[50%]"
           />
-          <p>{timeFormatter(duration)}</p>
+          <p>{timeFormatter(player.duration)}</p>
         </div>
       </div>
       <div className="w-60 flex items-center justify-end gap-4">
         <Icons.MusicQueue className="text-xl" />
         <button
           className="transition-transform cursor-pointer hover:scale-105 active:scale-95"
-          onClick={() => setMuted((prev) => !prev)}
+          onClick={toggleMute}
         >
-          {!muted ? (
+          {!player.muted ? (
             <Icons.VolumeHigh className="text-xl" />
           ) : (
             <Icons.VolumeZero className="text-xl" />
@@ -171,9 +137,9 @@ export default function MusicPlayer() {
           min={0}
           max={1}
           step={0.1}
-          value={muted ? 0 : volume}
-          disabled={muted}
-          className={muted ? "opacity-50" : ""}
+          value={player.muted ? 0 : player.volume}
+          disabled={player.muted}
+          className={player.muted ? "opacity-50" : ""}
           onChange={handleVolumeChange}
         />
       </div>
