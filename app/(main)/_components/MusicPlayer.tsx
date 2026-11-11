@@ -15,12 +15,13 @@ export default function MusicPlayer() {
   const [currentSong, setCurrentSong] = useState<string>();
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     async function getCurrentSong() {
       const url = await requestSongURL(
-        "4f96951e-0b4a-4512-9192-2fb6e8a33eee.mp3",
+        "34ae8eec-564a-4b5f-88b3-479155290eb4.mp3",
       );
       setCurrentSong(url);
     }
@@ -77,14 +78,24 @@ export default function MusicPlayer() {
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
-  }, [volume]);
+    if (!audioRef.current) return;
+    if (muted) {
+      audioRef.current.volume = 0;
+      return;
+    }
+    audioRef.current.volume = volume;
+  }, [volume, muted]);
 
   function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
     if (!currentSong) return;
     const time = Number(e.target.value);
     setCurrentTime(time);
     if (audioRef.current) audioRef.current.currentTime = time;
+  }
+
+  function handleVolumeChange(e: ChangeEvent<HTMLInputElement>) {
+    if (muted) return;
+    setVolume(Number(e.target.value));
   }
 
   return (
@@ -146,13 +157,24 @@ export default function MusicPlayer() {
       </div>
       <div className="w-60 flex items-center justify-end gap-4">
         <Icons.MusicQueue className="text-xl" />
-        <Icons.VolumeHigh className="text-xl" />
+        <button
+          className="transition-transform cursor-pointer hover:scale-105 active:scale-95"
+          onClick={() => setMuted((prev) => !prev)}
+        >
+          {!muted ? (
+            <Icons.VolumeHigh className="text-xl" />
+          ) : (
+            <Icons.VolumeZero className="text-xl" />
+          )}
+        </button>
         <Slider
           min={0}
           max={1}
           step={0.1}
-          value={volume}
-          onChange={(e) => setVolume(Number(e.target.value))}
+          value={muted ? 0 : volume}
+          disabled={muted}
+          className={muted ? "opacity-50" : ""}
+          onChange={handleVolumeChange}
         />
       </div>
     </section>
