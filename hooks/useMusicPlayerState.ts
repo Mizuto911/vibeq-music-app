@@ -8,6 +8,7 @@ interface MusicPlayerState {
   duration: number;
   muted: boolean;
   isLoading: boolean;
+  isLoop: boolean;
 }
 
 type MusicPlayerAction =
@@ -18,7 +19,8 @@ type MusicPlayerAction =
   | { type: "UPDATE_TIME"; time: number }
   | { type: "SET_VOLUME"; volume: number }
   | { type: "TOGGLE_MUTE" }
-  | { type: "SET_LOADING"; isLoading: boolean };
+  | { type: "SET_LOADING"; isLoading: boolean }
+  | { type: "TOGGLE_LOOP" };
 
 function musicPlayerReducer(
   state: MusicPlayerState,
@@ -76,6 +78,12 @@ function musicPlayerReducer(
         isLoading: action.isLoading,
       };
     }
+    case "TOGGLE_LOOP": {
+      return {
+        ...state,
+        isLoop: !state.isLoop,
+      };
+    }
   }
 }
 
@@ -89,6 +97,7 @@ export default function useMusicPlayerState() {
     duration: 0,
     muted: false,
     isLoading: false,
+    isLoop: false,
   });
 
   const loadSong = (song: string) =>
@@ -105,6 +114,7 @@ export default function useMusicPlayerState() {
   const toggleMute = () => setPlayerState({ type: "TOGGLE_MUTE" });
   const setVolume = (volume: number) =>
     setPlayerState({ type: "SET_VOLUME", volume });
+  const toggleLoop = () => setPlayerState({ type: "TOGGLE_LOOP" });
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -135,5 +145,6 @@ export default function useMusicPlayerState() {
     setLoading,
     toggleMute,
     setVolume,
+    toggleLoop,
   };
 }

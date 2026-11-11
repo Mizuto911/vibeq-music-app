@@ -21,6 +21,7 @@ export default function MusicPlayer() {
     setLoading,
     toggleMute,
     setVolume,
+    toggleLoop,
   } = useMusicPlayerState();
 
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function MusicPlayer() {
         <audio
           src={player.currentSong}
           ref={audioRef}
+          loop={player.isLoop}
           onLoadedMetadata={handleLoadedMetaData}
           onWaiting={() => setLoading(true)}
           onLoadStart={() => setLoading(true)}
@@ -86,7 +88,9 @@ export default function MusicPlayer() {
           onEnded={() => setPlaying(false)}
         />
         <div className="flex gap-4 justify-center items-center w-[50%]">
-          <Icons.Shuffle className="text-xl" />
+          <button className="transition-transform cursor-pointer hover:scale-105 active:scale-95">
+            <Icons.Shuffle className="text-xl" />
+          </button>
           <Icons.PreviousMusic className="text-xl" />
           <button
             disabled={!player.currentSong}
@@ -106,7 +110,17 @@ export default function MusicPlayer() {
             )}
           </button>
           <Icons.NextMusic className="text-xl" />
-          <Icons.Loop className="text-xl" />
+          <button
+            onClick={toggleLoop}
+            className="transition-transform cursor-pointer hover:scale-105 active:scale-95"
+          >
+            <Icons.Loop
+              className={clsx(
+                "text-xl",
+                player.isLoop ? "text-accent" : "text-foreground",
+              )}
+            />
+          </button>
         </div>
         <div className="w-full flex justify-center items-center gap-2 text-sm">
           <p>{timeFormatter(player.currentTime)}</p>
