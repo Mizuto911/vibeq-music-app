@@ -5,6 +5,7 @@ import Icons from "@/utils/icons";
 import timeFormatter from "@/utils/timeFormatter";
 import { requestSongURL } from "@/server/actions/song";
 import { ChangeEvent, MouseEvent, useState, useRef, useEffect } from "react";
+import clsx from "clsx";
 
 interface SliderProps {
   className?: string;
@@ -13,6 +14,7 @@ interface SliderProps {
   max: number;
   value: number;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
 export default function MusicPlayer() {
@@ -21,6 +23,7 @@ export default function MusicPlayer() {
   const [volume, setVolume] = useState(1);
   const [currentSong, setCurrentSong] = useState<string>();
   const [duration, setDuration] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -43,10 +46,13 @@ export default function MusicPlayer() {
   }, [isPlaying]);
 
   useEffect(() => {
-    if (audioRef.current)
-      audioRef.current.onloadedmetadata = () => {
-        if (audioRef.current) setDuration(audioRef.current.duration);
-      };
+    if (!audioRef.current) return;
+    function loadDuration() {
+      if (audioRef.current) setDuration(audioRef.current.duration);
+    }
+    audioRef.current.addEventListener("loadedmetadata", loadDuration);
+    return () =>
+      audioRef.current?.removeEventListener("loadedmetadata", loadDuration);
   }, [currentSong]);
 
   useEffect(() => {
@@ -54,14 +60,28 @@ export default function MusicPlayer() {
     function handleTimeUpdate() {
       if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
     }
-    function pauseMusic() {
+    function stopMusic() {
       if (audioRef.current) setIsPlaying(false);
     }
+    function showLoading() {
+      if (audioRef.current) setIsLoading(true);
+    }
+    function hideLoading() {
+      if (audioRef.current) setIsLoading(false);
+    }
+    audioRef.current.addEventListener("waiting", showLoading);
+    audioRef.current.addEventListener("loadstart", showLoading);
+    audioRef.current.addEventListener("canplay", hideLoading);
+    audioRef.current.addEventListener("playing", hideLoading);
     audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
-    audioRef.current.addEventListener("ended", pauseMusic);
+    audioRef.current.addEventListener("ended", stopMusic);
     return () => {
+      audioRef.current?.removeEventListener("waiting", showLoading);
+      audioRef.current?.removeEventListener("loadstart", showLoading);
+      audioRef.current?.removeEventListener("canplay", hideLoading);
+      audioRef.current?.removeEventListener("playing", hideLoading);
       audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
-      audioRef.current?.removeEventListener("ended", pauseMusic);
+      audioRef.current?.removeEventListener("ended", stopMusic);
     };
   }, []);
 
@@ -91,16 +111,27 @@ export default function MusicPlayer() {
           <p className="opacity-75 text-xs">Mori Calliope</p>
         </div>
       </div>
-      <div className="flex-1 flex gap-3 flex-col justify-center items-center">
+      <div
+        className={clsx(
+          !currentSong && "opacity-50",
+          "flex-1 flex gap-3 flex-col justify-center items-center",
+        )}
+      >
         <audio src={currentSong} ref={audioRef} />
         <div className="flex gap-4 justify-center items-center w-[50%]">
           <Icons.Shuffle className="text-xl" />
           <Icons.PreviousMusic className="text-xl" />
           <button
+            disabled={!currentSong}
             onClick={() => setIsPlaying((prev) => !prev)}
-            className="p-3 rounded-full bg-foreground cursor-pointer transition-transform hover:scale-105 active:scale-95"
+            className={clsx(
+              currentSong && "cursor-pointer hover:scale-105 active:scale-95",
+              "p-3 rounded-full bg-foreground transition-transform",
+            )}
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <Icons.Loading className="text-xl text-background animate-spin" />
+            ) : isPlaying ? (
               <Icons.Pause className="text-xl text-background" />
             ) : (
               <Icons.Play className="text-xl text-background" />
@@ -114,6 +145,7 @@ export default function MusicPlayer() {
           <Slider
             min={0}
             max={duration || 100}
+            disabled={!currentSong}
             value={currentSong ? Math.round(currentTime) : 0}
             onChange={handleTimeChange}
             className="w-[50%]"
@@ -136,7 +168,15 @@ export default function MusicPlayer() {
   );
 }
 
-function Slider({ className, min, max, value, step, onChange }: SliderProps) {
+function Slider({
+  className,
+  min,
+  max,
+  value,
+  step,
+  onChange,
+  disabled,
+}: SliderProps) {
   const percentage = (value / max) * 100;
   const [hoverPercent, setHoverPercent] = useState<number | null>(null);
 
@@ -164,6 +204,7 @@ function Slider({ className, min, max, value, step, onChange }: SliderProps) {
         max={max}
         step={step ?? 1}
         value={value}
+        disabled={disabled}
         onMouseLeave={() => setHoverPercent(null)}
         onMouseMove={handleElementHover}
         onChange={onChange}
@@ -171,10 +212,13 @@ function Slider({ className, min, max, value, step, onChange }: SliderProps) {
         style={{
           background: `linear-gradient(to right, var(--accent) ${percentage}%, var(--background-lighter) ${percentage}%, var(--background-lighter) ${hoverPercent ?? percentage}%, var(--background-light) ${hoverPercent ?? percentage}%)`,
         }}
-        className="w-full h-1.5 rounded-full appearance-none cursor-pointer 
-          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform
-          [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-foreground [&::-moz-range-thumb]:hover:scale-105 [&::-moz-range-thumb]:transition-transform`,
-        "
+        className={clsx(
+          !disabled &&
+            "cursor-pointer [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:scale-105",
+          `w-full h-1.5 rounded-full appearance-none
+          [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground [&::-webkit-slider-thumb]:transition-transform
+          [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-foreground [&::-moz-range-thumb]:transition-transform`,
+        )}
       />
     </div>
   );
