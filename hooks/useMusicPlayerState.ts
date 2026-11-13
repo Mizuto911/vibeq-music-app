@@ -134,6 +134,16 @@ export default function useMusicPlayerState() {
     audioRef.current.volume = player.volume;
   }, [player.volume, player.muted]);
 
+  useEffect(() => {
+    return () => {
+      if (!audioRef.current) return;
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+    };
+  });
+
   return {
     audioRef,
     player,
