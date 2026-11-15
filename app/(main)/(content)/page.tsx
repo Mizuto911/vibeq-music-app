@@ -6,6 +6,7 @@ import ArtistItem from "../_components/ArtistItem";
 import UploadForm from "../_components/UploadForm";
 import { Artist, getArtists } from "@/server/actions/artist";
 import { Song, getSongs } from "@/server/actions/song";
+import ItemLoading from "../_components/ItemLoading";
 
 interface HomeProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,7 +21,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <div>
         <h2 className="text-xl font-bold">Recommended For You</h2>
         <div className="flex flex-row gap-8">
-          <Suspense fallback={<p>Loading Songs...</p>}>
+          <Suspense fallback={<Loading />}>
             <SongList searchParams={searchParams} />
           </Suspense>
         </div>
@@ -28,7 +29,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <div className="mt-8">
         <h2 className="text-xl font-bold">Your Favorite Artists</h2>
         <div className="flex flex-row gap-8">
-          <Suspense fallback={<p>Loading Artists...</p>}>
+          <Suspense fallback={<Loading />}>
             <ArtistList />
           </Suspense>
         </div>
@@ -37,6 +38,17 @@ export default async function Home({ searchParams }: HomeProps) {
         <UploadForm searchParams={searchParams} />
       </Suspense>
     </section>
+  );
+}
+
+function Loading() {
+  return (
+    <>
+      <ItemLoading />
+      <ItemLoading />
+      <ItemLoading />
+      <ItemLoading />
+    </>
   );
 }
 
