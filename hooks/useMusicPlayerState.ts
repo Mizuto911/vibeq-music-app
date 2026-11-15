@@ -4,7 +4,12 @@ interface MusicPlayerState {
   isPlaying: boolean;
   currentTime: number;
   volume: number;
-  currentSong?: string;
+  currentSong?: {
+    title: string;
+    coverUrl?: string;
+    artistName: string;
+    url: string;
+  };
   duration: number;
   muted: boolean;
   isLoading: boolean;
@@ -12,7 +17,15 @@ interface MusicPlayerState {
 }
 
 type MusicPlayerAction =
-  | { type: "SONG_LOAD"; song: string }
+  | {
+      type: "SONG_LOAD";
+      song: {
+        title: string;
+        url: string;
+        coverUrl?: string;
+        artistName: string;
+      };
+    }
   | { type: "SONG_LOADED"; duration: number }
   | { type: "TOGGLE_PLAY" }
   | { type: "SET_PLAYING"; isPlaying: boolean }
@@ -40,6 +53,7 @@ function musicPlayerReducer(
       return {
         ...state,
         duration: action.duration,
+        isPlaying: true,
       };
     }
     case "TOGGLE_PLAY": {
@@ -100,8 +114,12 @@ export default function useMusicPlayerState() {
     isLoop: false,
   });
 
-  const loadSong = (song: string) =>
-    setPlayerState({ type: "SONG_LOAD", song });
+  const loadSong = (song: {
+    title: string;
+    url: string;
+    coverUrl?: string;
+    artistName: string;
+  }) => setPlayerState({ type: "SONG_LOAD", song });
   const setDuration = (duration: number) =>
     setPlayerState({ type: "SONG_LOADED", duration });
   const togglePlaying = () => setPlayerState({ type: "TOGGLE_PLAY" });
