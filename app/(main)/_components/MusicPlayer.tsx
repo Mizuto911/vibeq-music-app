@@ -4,9 +4,10 @@ import Image from "next/image";
 import Icons from "@/utils/icons";
 import timeFormatter from "@/utils/timeFormatter";
 import Slider from "./Slider";
-import { requestSongURL } from "@/server/actions/song";
+import { getSong, requestSongURL, Song } from "@/server/actions/song";
 import { ChangeEvent, useEffect } from "react";
 import useMusicPlayerState from "@/hooks/useMusicPlayerState";
+import { useSearchParams } from "next/navigation";
 import clsx from "clsx";
 
 export default function MusicPlayer() {
@@ -23,16 +24,25 @@ export default function MusicPlayer() {
     setVolume,
     toggleLoop,
   } = useMusicPlayerState();
+  const currentParams = useSearchParams();
+  const song = currentParams.get("song");
 
   useEffect(() => {
     async function getCurrentSong() {
-      const url = await requestSongURL(
-        "4f96951e-0b4a-4512-9192-2fb6e8a33eee.mp3",
-      );
-      loadSong(url);
+      if (!song) return;
+      const response = await getSong(song);
+      if (!response.success) console.log(response.error);
+      const data = response.data as Song;
+      const url = await requestSongURL(`${data.id}.${data.extType}`);
+      loadSong({
+        title: data.title,
+        artistName: data.artist_name,
+        coverUrl: data.cover_url,
+        url,
+      });
     }
     getCurrentSong();
-  }, []);
+  }, [song]);
 
   function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
     if (!player.currentSong) return;
@@ -57,17 +67,29 @@ export default function MusicPlayer() {
   return (
     <section className="flex h-30 w-full shrink-0 items-center justify-between p-4">
       <div className="flex gap-4 w-60 items-center">
-        <Image
-          src="https://br-billowing-rice-b3586edm.storage.c-4.ap-southeast-1.aws.neon.tech/song-covers/ece35847-5fec-4210-85f0-f82c66b6d29e.jpg"
-          className="w-14 aspect-square rounded-md"
-          alt="Current Song Cover"
-          width={50}
-          height={50}
-        />
-        <div className="flex flex-col justify-center">
-          <h3 className="text-md font-bold">Resting Power</h3>
-          <p className="opacity-75 text-xs">Mori Calliope</p>
-        </div>
+        {player.currentSong && (
+          <>
+            {player.currentSong.coverUrl ? (
+              <Image
+                src={player.currentSong.coverUrl}
+                className="w-14 aspect-square rounded-md object-cover"
+                alt="Current Song Cover"
+                width={50}
+                height={50}
+              />
+            ) : (
+              <div className="w-14 aspect-square rounded-md grid place-content-center text-2xl bg-background-light shrink-0">
+                <Icons.Note className="opacity-60" />
+              </div>
+            )}
+            <div className="flex flex-col justify-center">
+              <h3 className="text-md font-bold">{player.currentSong.title}</h3>
+              <p className="opacity-75 text-xs">
+                {player.currentSong.artistName}
+              </p>
+            </div>
+          </>
+        )}
       </div>
       <div
         className={clsx(
@@ -76,7 +98,7 @@ export default function MusicPlayer() {
         )}
       >
         <audio
-          src={player.currentSong}
+          src={player.currentSong?.url}
           ref={audioRef}
           loop={player.isLoop}
           onLoadedMetadata={handleLoadedMetaData}
