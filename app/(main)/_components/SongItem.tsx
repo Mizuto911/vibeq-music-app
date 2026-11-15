@@ -1,13 +1,20 @@
 import Image from "next/image";
 import Icons from "@/utils/icons";
+import Link from "next/link";
 
 interface SongItemProps {
   coverSrc?: string;
   name: string;
   artist: string;
+  getSongQuery: () => string;
 }
 
-export default function SongItem({ coverSrc, name, artist }: SongItemProps) {
+export default async function SongItem({
+  coverSrc,
+  name,
+  artist,
+  getSongQuery,
+}: SongItemProps) {
   return (
     <div className="mt-4 flex flex-col gap-2 w-50 cursor-pointer relative group">
       <div className="w-full h-full absolute inset-0 opacity-0 place-self-center scale-80 bg-background-lighter rounded-xl group-hover:opacity-100 group-hover:scale-110 transition-all"></div>
@@ -25,9 +32,12 @@ export default function SongItem({ coverSrc, name, artist }: SongItemProps) {
             <Icons.Note className="opacity-60" />
           </div>
         )}
-        <button className="w-12 h-12 translate-y-2 cursor-pointer opacity-0 rounded-full bg-accent absolute mb-2 me-2 right-0 bottom-0 grid place-content-center shadow-xl group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 transition-all">
+        <Link
+          href={getSongQuery()}
+          className="w-12 h-12 translate-y-2 cursor-pointer opacity-0 rounded-full bg-accent absolute mb-2 me-2 right-0 bottom-0 grid place-content-center shadow-xl group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 active:scale-95 transition-all"
+        >
           <Icons.Play className="text-background text-lg" />
-        </button>
+        </Link>
       </div>
       <div className="z-2">
         <h3 className="text-lg font-bold line-clamp-1">{name}</h3>
