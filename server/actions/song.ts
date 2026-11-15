@@ -8,12 +8,21 @@ export type Song = {
   cover_url?: string;
   title: string;
   artist_name: string;
+  extType: string;
 };
 
 export async function getSongs() {
   const songs =
     await db`SELECT songs.id, cover_url, title, name AS artist_name FROM songs LEFT JOIN artists on songs.artist_id = artists.id`;
   return { success: true, data: songs };
+}
+
+export async function getSong(id: string) {
+  const [song] =
+    await db`SELECT songs.id, cover_url, title, name AS artist_name, ext_type as "extType" FROM songs LEFT JOIN artists on songs.artist_id = artists.id WHERE songs.id = ${id}`;
+  if (!song)
+    return { success: false, error: `Song with ID ${id} does not exist.` };
+  return { success: true, data: song };
 }
 
 export async function requestSongUploadURL(extType: string) {
