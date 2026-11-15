@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, useRef } from "react";
 import { signOut } from "next-auth/react";
 import { User } from "next-auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useOutsideAlerter from "@/hooks/useOutsideAlerter";
 
 interface UserMenuProps {
@@ -18,11 +18,20 @@ export default function UserMenu({ user }: UserMenuProps) {
   const [showDropDown, setShowDropDown] = useState(false);
   const dropDownRef = useRef<HTMLDivElement | null>(null);
 
+  const currentParams = useSearchParams();
+
   useOutsideAlerter(dropDownRef, () => setShowDropDown(false));
 
   async function handleSignOut() {
     await signOut();
     router.refresh();
+  }
+
+  function handleUploadClick() {
+    const newParams = new URLSearchParams(currentParams.toString());
+    newParams.set("upload_form", "true");
+    const queryString = newParams.toString();
+    router.replace(`/?${queryString}`);
   }
 
   return (
@@ -32,7 +41,7 @@ export default function UserMenu({ user }: UserMenuProps) {
           {user.userType === "admin" && (
             <button
               className="cursor-pointer hover:scale-110 transition-transform text-xl"
-              onClick={() => router.replace("/?upload_form=true")}
+              onClick={handleUploadClick}
             >
               <Icons.Upload />
             </button>
@@ -97,7 +106,7 @@ export default function UserMenu({ user }: UserMenuProps) {
             Sign Up
           </Link>
           <Link
-            href="log-in"
+            href="/log-in"
             className="p-2 bg-accent rounded-full font-bold text-background w-32 cursor-pointer hover:opacity-75 transition-all text-center"
           >
             Log In

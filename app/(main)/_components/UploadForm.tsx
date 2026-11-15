@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Icons from "@/utils/icons";
 import clsx from "clsx";
 import SongUploadForm from "./SongUploadForm";
@@ -29,6 +29,7 @@ function UploadDialog() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const router = useRouter();
+  const currentParams = useSearchParams();
 
   useEffect(() => {
     setTimeout(() => setShouldShow(true), 100);
@@ -65,7 +66,15 @@ function UploadDialog() {
 
   function handleDismiss() {
     setShouldShow(false);
-    setTimeout(() => router.replace("/"), 200);
+
+    const newParams = new URLSearchParams(currentParams.toString());
+    newParams.delete("upload_form");
+    const queryString = newParams.toString();
+
+    setTimeout(
+      () => router.replace(queryString ? `/?${queryString}` : "/"),
+      200,
+    );
   }
 
   return (

@@ -21,7 +21,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <h2 className="text-xl font-bold">Recommended For You</h2>
         <div className="flex flex-row gap-8">
           <Suspense fallback={<p>Loading Songs...</p>}>
-            <SongList />
+            <SongList searchParams={searchParams} />
           </Suspense>
         </div>
       </div>
@@ -41,11 +41,26 @@ export default async function Home({ searchParams }: HomeProps) {
 }
 
 async function NavMenu({ searchParams }: HomeProps) {
-  const query = (await searchParams).q;
+  const params = await searchParams;
+  const query = params.q;
+
+  function hrefFor(nextQuery?: string) {
+    const nextParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key === "q" || value === undefined) continue;
+      for (const item of Array.isArray(value) ? value : [value]) {
+        nextParams.append(key, item);
+      }
+    }
+    if (nextQuery !== undefined) nextParams.set("q", nextQuery);
+    const queryString = nextParams.toString();
+    return queryString ? `/?${queryString}` : "/";
+  }
+
   return (
     <nav className="flex gap-2 text-sm text-center pb-8">
       <Link
-        href="/"
+        href={hrefFor()}
         className={clsx(
           "rounded-full py-2 px-4 min-w-15 transition-all hover:scale-105 active:scale-95 shadow-2xl",
           query === undefined
@@ -56,7 +71,7 @@ async function NavMenu({ searchParams }: HomeProps) {
         All
       </Link>
       <Link
-        href="/?q=song"
+        href={hrefFor("song")}
         className={clsx(
           "rounded-full py-2 px-4 min-w-15 transition-all hover:scale-105 active:scale-95 shadow-xl",
           query === "song"
@@ -67,7 +82,7 @@ async function NavMenu({ searchParams }: HomeProps) {
         Song
       </Link>
       <Link
-        href="/?q=artists"
+        href={hrefFor("artists")}
         className={clsx(
           "rounded-full py-2 px-4 min-w-15 transition-all hover:scale-105 active:scale-95 shadow-xl",
           query === "artists"
@@ -94,14 +109,27 @@ async function ArtistList() {
   return <>{artistItems}</>;
 }
 
-async function SongList() {
+async function SongList({ searchParams }: HomeProps) {
   const songs = (await getSongs()) as { success: boolean; data: Song[] };
+  const params = await searchParams;
   const songItems = songs.data.map((song) => (
     <SongItem
       key={song.id}
       coverSrc={song.cover_url}
       name={song.title}
       artist={song.artist_name}
+      getSongQuery={() => {
+        const nextParams = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+          if (key === "song" || value === undefined) continue;
+          for (const item of Array.isArray(value) ? value : [value]) {
+            nextParams.append(key, item);
+          }
+        }
+        nextParams.set("song", song.id);
+        const queryString = nextParams.toString();
+        return `/?${queryString}`;
+      }}
     />
   ));
 
