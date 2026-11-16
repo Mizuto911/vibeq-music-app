@@ -44,6 +44,25 @@ export default function MusicPlayer() {
     getCurrentSong();
   }, [song]);
 
+  useEffect(() => {
+    function onPlayShortcut(e: KeyboardEvent) {
+      if (e.code === "Space") {
+        if (e.repeat) return;
+        const activeTag = document.activeElement?.tagName;
+        if (
+          activeTag === "INPUT" ||
+          activeTag === "TEXTAREA" ||
+          activeTag === "BUTTON"
+        )
+          return;
+        e.preventDefault();
+        togglePlaying();
+      }
+    }
+    document.addEventListener("keydown", onPlayShortcut);
+    return () => document.removeEventListener("keydown", onPlayShortcut);
+  }, [player.isPlaying]);
+
   function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
     if (!player.currentSong) return;
     const time = Number(e.target.value);
