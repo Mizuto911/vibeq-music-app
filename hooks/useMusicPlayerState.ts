@@ -16,15 +16,17 @@ interface MusicPlayerState {
   isLoop: boolean;
 }
 
+export type SongInfo = {
+  title: string;
+  url: string;
+  coverUrl?: string;
+  artistName: string;
+};
+
 type MusicPlayerAction =
   | {
       type: "SONG_LOAD";
-      song: {
-        title: string;
-        url: string;
-        coverUrl?: string;
-        artistName: string;
-      };
+      song: SongInfo;
     }
   | { type: "SONG_LOADED"; duration: number }
   | { type: "TOGGLE_PLAY" }
@@ -114,12 +116,8 @@ export default function useMusicPlayerState() {
     isLoop: false,
   });
 
-  const loadSong = (song: {
-    title: string;
-    url: string;
-    coverUrl?: string;
-    artistName: string;
-  }) => setPlayerState({ type: "SONG_LOAD", song });
+  const loadSong = (song: SongInfo) =>
+    setPlayerState({ type: "SONG_LOAD", song });
   const setDuration = (duration: number) =>
     setPlayerState({ type: "SONG_LOADED", duration });
   const togglePlaying = () => setPlayerState({ type: "TOGGLE_PLAY" });
