@@ -4,9 +4,10 @@ import Image from "next/image";
 import Icons from "@/utils/icons";
 import timeFormatter from "@/utils/timeFormatter";
 import Slider from "./Slider";
-import { getSong, requestSongURL, Song } from "@/server/actions/song";
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent } from "react";
 import useMusicPlayerState from "@/hooks/useMusicPlayerState";
+import usePlayShortcut from "@/hooks/usePlayShortcut";
+import useQuerySong from "@/hooks/useQuerySong";
 import { useSearchParams } from "next/navigation";
 import clsx from "clsx";
 
@@ -25,43 +26,10 @@ export default function MusicPlayer() {
     toggleLoop,
   } = useMusicPlayerState();
   const currentParams = useSearchParams();
-  const song = currentParams.get("song");
+  const songQuery = currentParams.get("song");
 
-  useEffect(() => {
-    async function getCurrentSong() {
-      if (!song) return;
-      const response = await getSong(song);
-      if (!response.success) console.log(response.error);
-      const data = response.data as Song;
-      const url = await requestSongURL(`${data.id}.${data.extType}`);
-      loadSong({
-        title: data.title,
-        artistName: data.artist_name,
-        coverUrl: data.cover_url,
-        url,
-      });
-    }
-    getCurrentSong();
-  }, [song]);
-
-  useEffect(() => {
-    function onPlayShortcut(e: KeyboardEvent) {
-      if (e.code === "Space") {
-        if (e.repeat) return;
-        const activeTag = document.activeElement?.tagName;
-        if (
-          activeTag === "INPUT" ||
-          activeTag === "TEXTAREA" ||
-          activeTag === "BUTTON"
-        )
-          return;
-        e.preventDefault();
-        togglePlaying();
-      }
-    }
-    document.addEventListener("keydown", onPlayShortcut);
-    return () => document.removeEventListener("keydown", onPlayShortcut);
-  }, [player.isPlaying]);
+  useQuerySong(songQuery, (song) => loadSong(song));
+  usePlayShortcut(() => togglePlaying(), [player.isPlaying]);
 
   function handleTimeChange(e: ChangeEvent<HTMLInputElement>) {
     if (!player.currentSong) return;
