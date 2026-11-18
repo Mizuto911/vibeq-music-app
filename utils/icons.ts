@@ -25,7 +25,7 @@ import { TiArrowShuffle, TiArrowLoop } from "react-icons/ti";
 import { RxCross2 } from "react-icons/rx";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { MdUpload, MdModeEditOutline, MdQueueMusic } from "react-icons/md";
-import { IoMdArrowDropdown } from "react-icons/io";
+import { IoMdArrowDropdown, IoIosMore } from "react-icons/io";
 
 export default {
   Home: RiHomeFill,
@@ -53,4 +53,5 @@ export default {
   VolumeMedium: FaVolumeLow,
   VolumeLow: FaVolumeOff,
   VolumeZero: FaVolumeXmark,
+  More: IoIosMore,
 };
